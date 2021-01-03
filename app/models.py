@@ -19,10 +19,10 @@ class Universities(models.Model):
 class Faculties(models.Model):
     name = models.CharField("Название факультета", max_length=150)
     description = models.TextField("Описание")
-    universityId = models.ForeignKey(Universities, on_delete=models.CASCADE)
+    universityId = models.ForeignKey(Universities, on_delete=models.CASCADE, verbose_name="Университет")
     
     def __str__(self):
-        return self.name
+        return f"{self.name} - {self.universityId}"
 
     class Meta:
         verbose_name = "Факультет"
@@ -32,10 +32,10 @@ class Faculties(models.Model):
 class Specializations(models.Model):
     codeName = models.CharField("Код специальности", max_length=50)
     name = models.CharField("Название специальности", max_length=150)
-    facultyId = models.ForeignKey(Faculties, on_delete=models.CASCADE)
+    facultyId = models.ForeignKey(Faculties, on_delete=models.CASCADE, verbose_name="Факультет")
     
     def __str__(self):
-        return self.name
+        return f"{self.name} - {self.facultyId}"
 
     class Meta:
         verbose_name = "Специальность"
@@ -44,13 +44,13 @@ class Specializations(models.Model):
 # Группы
 class Groups(models.Model):
     codeName = models.CharField("Номер группы", max_length=50)
-    specializationId = models.ForeignKey(Specializations, on_delete=models.CASCADE)
+    specializationId = models.ForeignKey(Specializations, on_delete=models.CASCADE, verbose_name="Специальность")
     course = models.PositiveIntegerField("Курс")
     formEducation = models.CharField("Форма обучения", max_length=100, help_text="(очная/заочная/очно-заочная)")
     studyDegree = models.CharField("Ступень высшего образования", max_length=160, help_text="например, бакалавриат")
     
     def __str__(self):
-        return self.codeName
+        return f"{self.codeName} - {self.specializationId}"
 
     class Meta:
         verbose_name = "Группа"
@@ -61,7 +61,7 @@ class Groups(models.Model):
 class Students(models.Model):
     fullname = models.CharField("ФИО", max_length=160)
     birtdate = models.DateField("Дата рождения")
-    groupId = models.ForeignKey(Groups, on_delete=models.SET_NULL, null=True)
+    groupId = models.ForeignKey(Groups, on_delete=models.SET_NULL, null=True, verbose_name="Группа")
     phone = models.CharField("Телефон", max_length=50)
     email = models.EmailField("Email")
     budgetary = models.BooleanField("Бюджетное обучение", default=False)
@@ -90,12 +90,12 @@ class Events(models.Model):
 
 # Студенты в мероприятиях
 class StudentsInEvents(models.Model):
-    studentId = models.ForeignKey(Students, on_delete=models.CASCADE)
-    eventId = models.ForeignKey(Events, on_delete=models.CASCADE)
+    studentId = models.ForeignKey(Students, on_delete=models.CASCADE, verbose_name="Студент")
+    eventId = models.ForeignKey(Events, on_delete=models.CASCADE, verbose_name="Мероприятие")
     role = models.CharField("Роль студента в мероприятии", max_length=50, help_text="например, участник или победитель")
    
     def __str__(self):
-        return self.role
+        return f"{self.studentId} - {self.eventId}"
 
     class Meta:
         verbose_name = "Студенты в мероприятиях"
@@ -119,10 +119,10 @@ class Projects(models.Model):
 # Команды
 class Teams(models.Model):
     name = models.CharField("Название", max_length=150)
-    projectId = models.ForeignKey(Projects, on_delete=models.CASCADE)
+    projectId = models.ForeignKey(Projects, on_delete=models.CASCADE, verbose_name="Проект")
     
     def __str__(self):
-        return self.name
+        return f"{self.name} - {self.projectId}"
 
     class Meta:
         verbose_name = "Команда"
@@ -131,11 +131,11 @@ class Teams(models.Model):
 
 # Студенты в командах
 class StudentsInTeams(models.Model):
-    studentId = models.ForeignKey(Students, on_delete=models.CASCADE)
-    teamId = models.ForeignKey(Teams, on_delete=models.CASCADE)
+    studentId = models.ForeignKey(Students, on_delete=models.CASCADE, verbose_name="Студент")
+    teamId = models.ForeignKey(Teams, on_delete=models.CASCADE, verbose_name="Команда")
     
     def __str__(self):
-        return self.teamId
+        return f"{self.studentId} - {self.teamId}"
 
     class Meta:
         verbose_name = "Студент в командах"
