@@ -35,7 +35,7 @@ class Specializations(models.Model):
     facultyId = models.ForeignKey(Faculties, on_delete=models.CASCADE, verbose_name="Факультет")
     
     def __str__(self):
-        return f"{self.name} - {self.facultyId}"
+        return f"{self.codeName} - {self.name} - {self.facultyId}"
 
     class Meta:
         verbose_name = "Специальность"
@@ -107,7 +107,7 @@ class Projects(models.Model):
     description = models.TextField("Описание")
     dateStart = models.DateField("Дата начала работы над проектом")
     dateEnd = models.DateField("Дата окончания работ над проектом")
-    links = models.JSONField("Список ссылок")
+    links = models.TextField("Список ссылок")
     
     def __str__(self):
         return self.name
