@@ -1,30 +1,66 @@
 from django.contrib import admin
-from .models import Universities, Faculties, Specializations, Groups, Students, Events, Projects, StudentsInEvents, Teams
+from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
+from django.contrib.auth.models import User
+from import_export import resources
+from import_export.admin import ImportExportModelAdmin
+from .models import Employee, Universities, Faculties, Specializations, Groups, Students, Events, Projects, StudentsInEvents, Teams
 
-class UniversitiesAdmin(admin.ModelAdmin):
+class EmployeeInline(admin.StackedInline):
+    model = Employee
+    can_delete = False
+
+class UserAdmin(BaseUserAdmin):
+    inlines = (EmployeeInline,)
+
+class UniversitiesResource(resources.ModelResource): 
+    class Meta:
+        model = Universities
+
+class UniversitiesAdmin(ImportExportModelAdmin):
     list_display = ("fullname",)
     list_filter = ("location",)
     search_fields = ("fullname", "shortname")
+    resource_class = UniversitiesResource
 
-class FacultiesAdmin(admin.ModelAdmin):
+class FacultiesResource(resources.ModelResource): 
+    class Meta:
+        model = Faculties
+
+class FacultiesAdmin(ImportExportModelAdmin):
     list_display = ("name", "university")
     search_fields = ("name", "university_id__fullname")
+    resource_class = FacultiesResource
 
-class SpecializationsAdmin(admin.ModelAdmin):
+class SpecializationsResource(resources.ModelResource): 
+    class Meta:
+        model = Specializations
+
+class SpecializationsAdmin(ImportExportModelAdmin):
     list_display = ("codeName", "name", "faculty")
     list_display_links = ("name",)
     search_fields = ("codeName", "name")
+    resource_class = SpecializationsResource
 
-class GroupsAdmin(admin.ModelAdmin):
+class GroupsResource(resources.ModelResource): 
+    class Meta:
+        model = Groups
+
+class GroupsAdmin(ImportExportModelAdmin):
     list_display = ("codeName", "specialization")
     list_filter = ("course", "formEducation", "studyDegree", "specialization_id__name")
     search_fields = ("codeName",)
+    resource_class = GroupsResource
 
-class StudentsAdmin(admin.ModelAdmin):
+class StudentsResource(resources.ModelResource): 
+    class Meta:
+        model = Students
+
+class StudentsAdmin(ImportExportModelAdmin):
     list_display = ("fullname", "group", "budgetary")
     list_filter = ("budgetary", "group_id__codeName")
     search_fields = ("fullname",)
     actions = ["makeBudgetary", "makeUnbudgetary"]
+    resource_class = StudentsResource
 
     def makeUnbudgetary(self, request, queryset):
         # Перевести на коммерческое обучение
@@ -55,29 +91,51 @@ class ParticipantsInline(admin.StackedInline):
     model = StudentsInEvents
     extra = 1
 
-class EventsAdmin(admin.ModelAdmin):
+class EventsResource(resources.ModelResource): 
+    class Meta:
+        model = Events
+
+class EventsAdmin(ImportExportModelAdmin):
     list_display = ("name", "date", "location")
     search_fields = ("name",)
     inlines = [ParticipantsInline]
+    resource_class = EventsResource
 
 class TeamsInline(admin.TabularInline):
     model = Teams
     extra = 1
 
-class ProjectsAdmin(admin.ModelAdmin):
+class ProjectsResource(resources.ModelResource): 
+    class Meta:
+        model = Projects
+
+class ProjectsAdmin(ImportExportModelAdmin):
     list_display = ("name",)
     search_fields = ("name",)
     inlines = [TeamsInline]
     save_on_top = True
+    resource_class = ProjectsResource
 
-class StudentsInEventsAdmin(admin.ModelAdmin):
+class StudentsInEventsResource(resources.ModelResource): 
+    class Meta:
+        model = StudentsInEvents
+
+class StudentsInEventsAdmin(ImportExportModelAdmin):
     list_display = ("student", "event", "role")
     list_filter = ("role",)
+    resource_class = StudentsInEventsResource
 
-class TeamsAdmin(admin.ModelAdmin):
+class TeamsResource(resources.ModelResource): 
+    class Meta:
+        model = Teams
+
+class TeamsAdmin(ImportExportModelAdmin):
     list_display = ("name", "project")
     search_fields = ("name", "project_id__name")
+    resource_class = TeamsResource
 
+admin.site.unregister(User)
+admin.site.register(User, UserAdmin)
 admin.site.register(Universities, UniversitiesAdmin)
 admin.site.register(Faculties, FacultiesAdmin)
 admin.site.register(Specializations, SpecializationsAdmin)
