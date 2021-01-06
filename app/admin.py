@@ -3,7 +3,7 @@ from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.models import User
 from import_export import resources
 from import_export.admin import ImportExportModelAdmin
-from .models import Employee, Universities, Faculties, Specializations, Groups, Students, Events, Projects, StudentsInEvents, Teams
+from .models import Employee, Universities, Faculties, Specializations, Groups, Students
 
 class EmployeeInline(admin.StackedInline):
     model = Employee
@@ -86,54 +86,6 @@ class StudentsAdmin(ImportExportModelAdmin):
     makeUnbudgetary.short_description = "Перевести на коммерческое обучение"
     makeUnbudgetary.allowed_permissions = ('change', )
 
-
-class ParticipantsInline(admin.StackedInline):
-    model = StudentsInEvents
-    extra = 1
-
-class EventsResource(resources.ModelResource): 
-    class Meta:
-        model = Events
-
-class EventsAdmin(ImportExportModelAdmin):
-    list_display = ("name", "date", "location")
-    search_fields = ("name",)
-    inlines = [ParticipantsInline]
-    resource_class = EventsResource
-
-class TeamsInline(admin.TabularInline):
-    model = Teams
-    extra = 1
-
-class ProjectsResource(resources.ModelResource): 
-    class Meta:
-        model = Projects
-
-class ProjectsAdmin(ImportExportModelAdmin):
-    list_display = ("name",)
-    search_fields = ("name",)
-    inlines = [TeamsInline]
-    save_on_top = True
-    resource_class = ProjectsResource
-
-class StudentsInEventsResource(resources.ModelResource): 
-    class Meta:
-        model = StudentsInEvents
-
-class StudentsInEventsAdmin(ImportExportModelAdmin):
-    list_display = ("student", "event", "role")
-    list_filter = ("role",)
-    resource_class = StudentsInEventsResource
-
-class TeamsResource(resources.ModelResource): 
-    class Meta:
-        model = Teams
-
-class TeamsAdmin(ImportExportModelAdmin):
-    list_display = ("name", "project")
-    search_fields = ("name", "project_id__name")
-    resource_class = TeamsResource
-
 admin.site.unregister(User)
 admin.site.register(User, UserAdmin)
 admin.site.register(Universities, UniversitiesAdmin)
@@ -141,10 +93,6 @@ admin.site.register(Faculties, FacultiesAdmin)
 admin.site.register(Specializations, SpecializationsAdmin)
 admin.site.register(Groups, GroupsAdmin)
 admin.site.register(Students, StudentsAdmin)
-admin.site.register(Events, EventsAdmin)
-admin.site.register(Projects, ProjectsAdmin)
-admin.site.register(StudentsInEvents, StudentsInEventsAdmin)
-admin.site.register(Teams, TeamsAdmin)
 
 admin.site.site_title = "Портфолио студентов"
 admin.site.site_header = "Портфолио студентов"
