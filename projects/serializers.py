@@ -21,18 +21,11 @@ class ProjectDetailSerializer(serializers.ModelSerializer):
         model = Projects
         fields = "__all__"
 
-# Команда проекта (добавление участника /  создание новой)
-class AddParticipantTeamProjectSerializer(serializers.ModelSerializer):
+# Создание новой команды
+class CreateTeamSerializer(serializers.ModelSerializer):
     class Meta:
         model = Teams
         fields = "__all__"
-    
-    def create(self, validated_data):
-        team = Teams.objects.update_or_create(
-            name=validated_data.get("name", None),
-            project=validated_data.get("project", None),
-            defaults={"participants": validated_data.get("participants", None)})
-        return team
 
 # Создание нового проекта
 class CreateProjectSerializer(serializers.ModelSerializer):

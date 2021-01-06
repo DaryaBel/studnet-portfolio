@@ -3,7 +3,7 @@ from rest_framework.views import APIView
 from django.shortcuts import render
 
 from .models import Projects
-from .serializers import CreateProjectSerializer, AddParticipantTeamProjectSerializer, ProjectListSerializer, ProjectDetailSerializer
+from .serializers import CreateTeamSerializer, CreateProjectSerializer, ProjectListSerializer, ProjectDetailSerializer
 
 # Вывод списка проектов
 class ProjectListView(APIView):
@@ -19,17 +19,13 @@ class ProjectDetailView(APIView):
         serializer = ProjectDetailSerializer(project)
         return Response(serializer.data)
 
-
-## НЕ ГОТОВО
-# Команда проекта (добавление участника /  создание новой)
-class AddParticipantTeamProjectView(APIView):
+# Создание новой команды
+class CreateTeamView(APIView):
     def post(self, request):
-        serializer = AddParticipantTeamProjectSerializer(data=request.data)
+        serializer = CreateTeamSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
-            return Response(status=201)
-        else:
-            return Response(status=400)
+        return Response(status=201)
 
 # Создание нового проекта
 class CreateProjectView(APIView):
