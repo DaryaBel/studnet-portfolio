@@ -40,6 +40,8 @@ INSTALLED_APPS = [
     'rest_framework',
     'import_export',
     'app',
+    'events',
+    'projects',
 ]
 
 MIDDLEWARE = [

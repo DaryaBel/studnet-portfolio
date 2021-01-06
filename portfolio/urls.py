@@ -21,4 +21,6 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('rest-api/', include('rest_framework.urls')),
     path('api/v1/', include('app.urls')),
+    path('api/v1/', include('events.urls')),
+    path('api/v1/', include('projects.urls')),
 ]
