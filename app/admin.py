@@ -1,7 +1,16 @@
 from django.contrib import admin
+from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
+from django.contrib.auth.models import User
 from import_export import resources
 from import_export.admin import ImportExportModelAdmin
-from .models import Universities, Faculties, Specializations, Groups, Students, Events, Projects, StudentsInEvents, Teams
+from .models import Employee, Universities, Faculties, Specializations, Groups, Students, Events, Projects, StudentsInEvents, Teams
+
+class EmployeeInline(admin.StackedInline):
+    model = Employee
+    can_delete = False
+
+class UserAdmin(BaseUserAdmin):
+    inlines = (EmployeeInline,)
 
 class UniversitiesResource(resources.ModelResource): 
     class Meta:
@@ -125,6 +134,8 @@ class TeamsAdmin(ImportExportModelAdmin):
     search_fields = ("name", "project_id__name")
     resource_class = TeamsResource
 
+admin.site.unregister(User)
+admin.site.register(User, UserAdmin)
 admin.site.register(Universities, UniversitiesAdmin)
 admin.site.register(Faculties, FacultiesAdmin)
 admin.site.register(Specializations, SpecializationsAdmin)

@@ -1,4 +1,5 @@
 from django.db import models
+from django.contrib.auth.models import User
 
 # Университеты
 class Universities(models.Model):
@@ -72,6 +73,20 @@ class Students(models.Model):
     class Meta:
         verbose_name = "Студент"
         verbose_name_plural = "Студенты"
+
+# Сотрудники
+class Employee(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    position = models.CharField("Должность", max_length=150)
+    student = models.ForeignKey(Students, on_delete=models.SET_NULL, null=True, verbose_name="Студент",  blank=True)
+    
+    def __str__(self):
+            return f"{self.user.first_name} {self.user.last_name}"
+
+    class Meta:
+        verbose_name = "Сотрудник"
+        verbose_name_plural = "Сотрудники"
+
 
 # Мероприятия
 class Events(models.Model):
