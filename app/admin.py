@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Universities, Faculties, Specializations, Groups, Students, Events, Projects, StudentsInEvents, Teams, StudentsInTeams
+from .models import Universities, Faculties, Specializations, Groups, Students, Events, Projects, StudentsInEvents, Teams
 
 class UniversitiesAdmin(admin.ModelAdmin):
     list_display = ("fullname",)
@@ -74,21 +74,9 @@ class StudentsInEventsAdmin(admin.ModelAdmin):
     list_display = ("student", "event", "role")
     list_filter = ("role",)
 
-class MembersInline(admin.StackedInline):
-    model = StudentsInTeams
-    extra = 1
-
 class TeamsAdmin(admin.ModelAdmin):
     list_display = ("name", "project")
     search_fields = ("name", "project_id__name")
-    inlines = [MembersInline]
-    save_on_top = True
-
-
-class StudentsInTeamsAdmin(admin.ModelAdmin):
-    list_display = ("student", "team")
-    search_fields = ("student_id__fullname", "team_id__name")
-
 
 admin.site.register(Universities, UniversitiesAdmin)
 admin.site.register(Faculties, FacultiesAdmin)
@@ -99,7 +87,6 @@ admin.site.register(Events, EventsAdmin)
 admin.site.register(Projects, ProjectsAdmin)
 admin.site.register(StudentsInEvents, StudentsInEventsAdmin)
 admin.site.register(Teams, TeamsAdmin)
-admin.site.register(StudentsInTeams, StudentsInTeamsAdmin)
 
 admin.site.site_title = "Портфолио студентов"
 admin.site.site_header = "Портфолио студентов"
