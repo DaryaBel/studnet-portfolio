@@ -1,12 +1,11 @@
 from rest_framework import serializers
-from .models import Students, Events, StudentsInEvents
+from .models import Students, Events, StudentsInEvents, Groups, Specializations, Faculties, Universities
 
 # Список студентов
 class StudentListSerializer(serializers.ModelSerializer):
-    group = serializers.SlugRelatedField(slug_field="codeName", read_only=True)
     class Meta:
         model = Students
-        fields = ("fullname", "group")
+        fields = ("fullname",)
 
 # Детальная информация о студенте
 class StudentDetailSerializer(serializers.ModelSerializer):
@@ -14,7 +13,62 @@ class StudentDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Students
         fields = "__all__"
-    
+
+# Список групп
+class GroupListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Groups
+        fields = ("codeName",)
+        
+# Детальная информация о группе
+class GroupDetailSerializer(serializers.ModelSerializer):
+    specialization = serializers.SlugRelatedField(slug_field="name", read_only=True)
+    studentsOfGroup = StudentListSerializer(many=True)
+    class Meta:
+        model = Groups
+        fields = "__all__"
+
+# Список специальностей
+class SpecializationListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Specializations
+        fields = ("codeName", "name")
+        
+# Детальная информация о специальностях
+class SpecializationDetailSerializer(serializers.ModelSerializer):
+    faculty = serializers.SlugRelatedField(slug_field="name", read_only=True)    
+    groupsOfSpecialization = GroupListSerializer(many=True)
+    class Meta:
+        model = Specializations
+        fields = "__all__"
+
+# Список факультетов
+class FacultyListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Faculties
+        fields = ("name",)
+        
+# Детальная информация о факультетах
+class FacultyDetailSerializer(serializers.ModelSerializer):
+    university = serializers.SlugRelatedField(slug_field="fullname", read_only=True)    
+    specializationsOfFaculty = SpecializationListSerializer(many=True)
+    class Meta:
+        model = Faculties
+        fields = "__all__"
+
+# Список университетов
+class UniversityListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Universities
+        fields = ("fullname",)
+        
+# Детальная информация об университетах
+class UniversityDetailSerializer(serializers.ModelSerializer):
+    facultiesOfUniversity = FacultyListSerializer(many=True)
+    class Meta:
+        model = Universities
+        fields = "__all__"
+
 # Вывод списка мероприятий
 class EventListSerializer(serializers.ModelSerializer):
     class Meta:
@@ -40,14 +94,4 @@ class CreateEventSerializer(serializers.ModelSerializer):
     class Meta:
         model = Events
         fields = "__all__"
-        # fields = ("name", "location", "description", "date")
-
-    # def create(self, validated_data):
-    #     event = Events.objects.update_or_create(
-    #         name=validated_data.get("name", None),
-    #         location=validated_data.get("location", None),
-    #         description=validated_data.get("description", None),
-    #         date=validated_data.get("date", None))
-
-    #         # defaults={"storyPoints": validated_data.get("storyPoints", None)})
-    #     return event
+        
