@@ -5,7 +5,7 @@ from .models import Teams, Projects
 class ProjectListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Projects
-        fields = ("name",)
+        fields = ("name", "id")
 
 # Получение команд, прикрепленных к проекту
 class TeamsSerializer(serializers.ModelSerializer):

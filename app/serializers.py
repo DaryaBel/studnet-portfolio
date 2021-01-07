@@ -5,7 +5,7 @@ from .models import Students, Groups, Specializations, Faculties, Universities
 class StudentListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Students
-        fields = ("fullname",)
+        fields = ("id", "fullname",)
 
 # Детальная информация о студенте
 class StudentDetailSerializer(serializers.ModelSerializer):
@@ -18,7 +18,7 @@ class StudentDetailSerializer(serializers.ModelSerializer):
 class GroupListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Groups
-        fields = ("codeName",)
+        fields = ("id", "codeName",)
         
 # Детальная информация о группе
 class GroupDetailSerializer(serializers.ModelSerializer):
@@ -32,7 +32,7 @@ class GroupDetailSerializer(serializers.ModelSerializer):
 class SpecializationListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Specializations
-        fields = ("codeName", "name")
+        fields = ("id", "codeName", "name")
         
 # Детальная информация о специальностях
 class SpecializationDetailSerializer(serializers.ModelSerializer):
@@ -46,7 +46,7 @@ class SpecializationDetailSerializer(serializers.ModelSerializer):
 class FacultyListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Faculties
-        fields = ("name",)
+        fields = ("id", "name",)
         
 # Детальная информация о факультетах
 class FacultyDetailSerializer(serializers.ModelSerializer):
@@ -60,7 +60,7 @@ class FacultyDetailSerializer(serializers.ModelSerializer):
 class UniversityListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Universities
-        fields = ("fullname",)
+        fields = ("id", "fullname",)
         
 # Детальная информация об университетах
 class UniversityDetailSerializer(serializers.ModelSerializer):

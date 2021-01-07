@@ -7,7 +7,6 @@ class Universities(models.Model):
     shortname = models.CharField("Краткое название или аббревиатура", max_length=100)
     location = models.CharField("Город", max_length=150)
     description = models.TextField("Описание")
-    phone = models.CharField("Телефон", max_length=50)
     
     def __str__(self):
         return self.fullname
@@ -36,7 +35,7 @@ class Specializations(models.Model):
     faculty = models.ForeignKey(Faculties, on_delete=models.CASCADE, verbose_name="Факультет", related_name="specializationsOfFaculty")
     
     def __str__(self):
-        return f"{self.codeName} - {self.name}"
+        return f"{self.codeName}. {self.name}"
 
     class Meta:
         verbose_name = "Специальность"

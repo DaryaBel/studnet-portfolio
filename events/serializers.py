@@ -6,7 +6,7 @@ from app.serializers import StudentListSerializer
 class EventListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Events
-        fields = ("name", "date")
+        fields = ("id","name", "date")
 
 # Получение студентов, участвовших в мероприятии
 class StudentsInEventsSerializer(serializers.ModelSerializer):
