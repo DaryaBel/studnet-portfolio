@@ -5,7 +5,7 @@ from .models import Events, StudentsInEvents
 
 class ParticipantsInline(admin.StackedInline):
     model = StudentsInEvents
-    extra = 1
+    extra = 0
 
 class EventsResource(resources.ModelResource): 
     class Meta:
@@ -24,6 +24,7 @@ class StudentsInEventsResource(resources.ModelResource):
 class StudentsInEventsAdmin(ImportExportModelAdmin):
     list_display = ("student", "event", "role")
     list_filter = ("role",)
+    search_fields = ("student_id__fullname",)
     resource_class = StudentsInEventsResource
 
 admin.site.register(Events, EventsAdmin)

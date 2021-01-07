@@ -5,7 +5,7 @@ from .models import Projects, Teams
 
 class TeamsInline(admin.TabularInline):
     model = Teams
-    extra = 1
+    extra = 0
 
 class ProjectsResource(resources.ModelResource): 
     class Meta:

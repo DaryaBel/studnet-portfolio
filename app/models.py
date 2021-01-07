@@ -63,7 +63,6 @@ class Students(models.Model):
     fullname = models.CharField("ФИО", max_length=160)
     birthdate = models.DateField("Дата рождения")
     group = models.ForeignKey(Groups, on_delete=models.SET_NULL, null=True, verbose_name="Группа", related_name="studentsOfGroup")
-    phone = models.CharField("Телефон", max_length=50)
     email = models.EmailField("Email")
     budgetary = models.BooleanField("Бюджетное обучение", default=False)
 
