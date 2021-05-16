@@ -107,6 +107,11 @@ media/
 *.db
 *.pid
 
+./frontend/node_modules/
+./frontend/node_modules
+./frontend/package-lock.json
+
+
 # Ignore Django Migrations in Development if you are working on team
 
 # Only for Development only
