@@ -15,8 +15,9 @@
         ></v-text-field>
       </v-col>
     </v-row>
+    
     <v-row>
-      <v-col>
+      <v-col v-if="filterItems.length != 0">
         <v-card
           class="mb-5"
           v-for="university in filterItems"
@@ -27,9 +28,14 @@
           <v-card-subtitle>{{ university.location }}</v-card-subtitle>
           <v-card-text>{{ university.description }}</v-card-text>
           <v-card-actions>
-            <v-btn text color="light-blue"> Выбрать </v-btn>
+            <v-btn text color="light-blue" @click="onLink(university)">
+              Выбрать
+            </v-btn>
           </v-card-actions>
         </v-card>
+      </v-col>
+      <v-col v-if="filterItems.length == 0">
+        <p class="text-center title">Не найдено</p>
       </v-col>
     </v-row>
   </v-container>
@@ -40,6 +46,7 @@ export default {
   name: "Universities",
   data() {
     return {
+      breadcrumbs: "place for breadcrumbs",
       findString: "",
       universities: [
         {
@@ -61,26 +68,45 @@ export default {
       ]
     };
   },
+  components: {
+  },
   computed: {
     filterItems() {
       if (this.findString !== "") {
         return this.universities.filter(el => {
           return (
-            (el.fullname.toLowerCase().split(' ').join('').indexOf(this.findString.toLowerCase().split(' ').join('')) !== -1 &&
-            el.fullname !== "") || (el.shortname.toLowerCase().split(' ').join('').indexOf(this.findString.toLowerCase().split(' ').join('')) !== -1 &&
-            el.shortname !== "")
+            (el.fullname
+              .toLowerCase()
+              .split(" ")
+              .join("")
+              .indexOf(this.findString.toLowerCase().split(" ").join("")) !==
+              -1 &&
+              el.fullname !== "") ||
+            (el.shortname
+              .toLowerCase()
+              .split(" ")
+              .join("")
+              .indexOf(this.findString.toLowerCase().split(" ").join("")) !==
+              -1 &&
+              el.shortname !== "")
           );
         });
       } else {
         return this.universities;
       }
     }
+  },
+  methods: {
+    onLink(university) {
+      this.$router.push({ name: "Faculties", params: { id: university.id } });
+
+    }
   }
 };
 </script>
 
 <style lang="scss" scoped>
-@media (max-width: 300px) {
+@media (max-width: 365px) {
   div.container.my-container {
     padding: 8px !important;
   }
