@@ -1,0 +1,8 @@
+djangorestframework
+django-import-export
+django
+django-extensions
+autopep8
+psycopg2-binary>=2.8
+django-environ
+graphene-django
