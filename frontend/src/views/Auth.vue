@@ -48,9 +48,8 @@
                 class="mt-8 white--text"
                 color="light-blue"
                 :dark="!$v.form.$invalid && !formLoading"
-                @click.prevent="logIn"
+                @click="onLogin"
                 block="block"
-                type="submit"
                 :disabled="$v.form.$invalid || formLoading"
                 :loading="formLoading"
               >
@@ -114,15 +113,14 @@ export default {
   },
   
   methods: {
-    logIn() {
-      this.$router.push({ name: "Universities" });
+    onLogin() {
       if (this.form.login == "operator") {
         localStorage.setItem("operator", true);
         this.form.password = "";
         this.form.login = "";
         this.$router.push({ name: "Universities" });
       } else {
-        if (this.login == "admin") {
+        if (this.form.login == "admin") {
           localStorage.setItem("admin", true);
           this.form.password = "";
           this.form.login = "";

@@ -6,7 +6,7 @@
           v-if="user || operator || admin"
           @click="drawer = true"
         ></v-app-bar-nav-icon>
-        <h2 class="mr-8 font-weight-regular pointer" @click="onLink()">
+        <h2 class="mr-8 font-weight-regular pointer" @click="onLinkUniversities()">
           Портфолио
         </h2>
 
@@ -33,16 +33,16 @@
           active-class="light-blue--text text--accent-4"
         >
           <v-list-item v-if="user">
-            <v-list-item-title>Профиль</v-list-item-title>
+            <v-list-item-title  @click="onLinkPortfolio(1)">Профиль</v-list-item-title>
           </v-list-item>
-          <v-list-item>
-            <v-list-item-title v-if="user">Проекты</v-list-item-title>
+          <v-list-item v-if="user">
+            <v-list-item-title >Проекты</v-list-item-title>
           </v-list-item>
-          <v-list-item>
-            <v-list-item-title v-if="user">Мероприятия</v-list-item-title>
+          <v-list-item v-if="user">
+            <v-list-item-title >Мероприятия</v-list-item-title>
           </v-list-item>
-          <v-list-item>
-            <v-list-item-title v-if="user || operator || admin"  @click="logOut" class="danger--text">Выйти</v-list-item-title>
+          <v-list-item @click="logOut()" >
+            <v-list-item-title v-if="user || operator || admin"  class="danger--text">Выйти</v-list-item-title>
           </v-list-item>
         </v-list-item-group>
       </v-list>
@@ -85,27 +85,25 @@ export default {
     else this.admin = false;
   },
   methods: {
-    onLink() {
+    onLinkUniversities() {
       this.$router.push({ name: "Universities" });
     },
     onLinkAuth() {
       this.$router.push({ name: "Auth" });
     },
+    onLinkPortfolio(id) {
+      this.$router.push({ name: "Portfolio", params: { id: id } });
+    },
     logOut() {
       localStorage.removeItem("user");
       localStorage.removeItem("operator");
       localStorage.removeItem("admin");
-      console.log(this.$router.currentRoute);
+      this.user = false;
+      this.operator = false;
+      this.admin = false;
       if (this.$router.currentRoute.name != "Auth") {
         this.$router.push({ name: "Auth" });
-      } else {
-        if (localStorage.getItem("user")) this.user = true;
-        else this.user = false;
-        if (localStorage.getItem("operator")) this.operator = true;
-        else this.operator = false;
-        if (localStorage.getItem("admin")) this.admin = true;
-        else this.admin = false;
-      }
+      } 
     }
   }
 };

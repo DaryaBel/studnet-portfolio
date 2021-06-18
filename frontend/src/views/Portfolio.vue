@@ -21,21 +21,142 @@
     <v-row>
       <v-col>
         <h3 class="mb-3">Участие в проектах</h3>
-        <div v-if="projects.length!=0"> 
-        <Project v-for="project in projects"
-          :key="project.id" v-bind:project="project"></Project>
+        <v-radio-group v-if="user" v-model="radios1" mandatory>
+          <h4 class="light-blue--text mb-2">Проект:</h4>
+          <v-radio
+            color="light-blue"
+            label="Присоединиться к существующему"
+            value="radio-1"
+            @click="clearProject()"
+          ></v-radio>
+          <v-radio
+            @click="clearProject()"
+            color="light-blue"
+            label="Добавить новый"
+            value="radio-2"
+          ></v-radio>
+        </v-radio-group>
+        <v-text-field
+          v-if="user && radios1 == 'radio-2'"
+          v-model.trim="$v.form2.project.$model"
+          class="mb-3"
+          color="light-blue"
+          label="Название проекта"
+          required
+        ></v-text-field>
+        <v-select
+          v-if="user && radios1 == 'radio-1'"
+          class="mb-3"
+          :items="allProjects"
+          label="Проект"
+          dense
+          required
+          v-model.trim="$v.form2.project.$model"
+          color="light-blue"
+        ></v-select>
+        <v-radio-group
+          v-if="user && radios1 == 'radio-1'"
+          v-model="radios2"
+          mandatory
+        >
+          <h4 class="light-blue--text mb-2">Команда:</h4>
+          <v-radio
+            @click="clearTeam()"
+            color="light-blue"
+            label="Присоединиться к существующей"
+            value="radio-3"
+          ></v-radio>
+          <v-radio
+            @click="clearTeam()"
+            color="light-blue"
+            label="Добавить новую"
+            value="radio-4"
+          ></v-radio>
+        </v-radio-group>
+        <v-select
+          v-if="user && radios1 == 'radio-1' && radios2 == 'radio-3'"
+          :items="allTeams"
+          label="Команда"
+          dense
+          required
+          v-model.trim="$v.form2.team.$model"
+          color="light-blue"
+        ></v-select>
+        <v-text-field
+          v-if="
+            (user && radios1 == 'radio-1' && radios2 == 'radio-4') ||
+            (user && radios1 == 'radio-2')
+          "
+          @input="myFunc()"
+          v-model.trim="$v.form2.team.$model"
+          class="mb-3"
+          color="light-blue"
+          label="Название команды"
+          required
+        ></v-text-field>
+        <v-btn
+          v-if="user"
+          class="mb-5 white--text"
+          color="light-blue"
+          @click="onAddYouInProject()"
+          block="block"
+          :dark="!$v.form2.$invalid"
+          :disabled="$v.form2.$invalid"
+        >
+          Добавить участие в проекте
+        </v-btn>
+        <div v-if="projects.length != 0">
+          <Project
+            v-for="project in projects"
+            :key="project.id"
+            v-bind:project="project"
+          ></Project>
         </div>
-        <div v-if="projects.length==0">
+        <div v-if="projects.length == 0">
           <span>Не найдено</span>
         </div>
       </v-col>
       <v-col>
-        <h3 class="mb-3">Участие в мероприятиях</h3>
-        <div v-if="events.length!=0"> 
-        <Event v-for="event in events"
-          :key="event.id" v-bind:event="event"></Event>
+        <h3 class="mb-6">Участие в мероприятиях</h3>
+        <v-select
+          v-if="user"
+          class="mb-3"
+          :items="allEvents"
+          label="Мероприятие"
+          dense
+          required
+          v-model.trim="$v.form.event.$model"
+          color="light-blue"
+        ></v-select>
+        <v-select
+          v-if="user"
+          class="mb-3"
+          :items="roles"
+          label="Ваша роль"
+          dense
+          required
+          color="light-blue"
+          v-model.trim="$v.form.role.$model"
+        ></v-select>
+        <v-btn
+          v-if="user"
+          class="mb-5 white--text"
+          color="light-blue"
+          @click="onAddYouInEvent()"
+          block="block"
+          :dark="!$v.form.$invalid"
+          :disabled="$v.form.$invalid"
+        >
+          Добавить участие в мероприятии
+        </v-btn>
+        <div v-if="events.length != 0">
+          <Event
+            v-for="event in events"
+            :key="event.id"
+            v-bind:event="event"
+          ></Event>
         </div>
-        <div v-if="events.length==0">
+        <div v-if="events.length == 0">
           <span>Не найдено</span>
         </div>
       </v-col>
@@ -44,15 +165,57 @@
 </template>
 
 <script>
+import { required } from "vuelidate/lib/validators";
 import Event from "@/components/Event.vue";
 import Project from "@/components/Project.vue";
 export default {
   name: "Portfolio",
   components: {
-    Event, Project
+    Event,
+    Project
+  },
+  validations: {
+    form: {
+      role: {
+        required
+      },
+      event: {
+        required
+      }
+    },
+    form2: {
+      project: {
+        required
+      },
+      team: {
+        required
+      }
+    }
   },
   data() {
     return {
+      form: {
+        role: "",
+        event: ""
+      },
+      form2: {
+        project: "",
+        team: ""
+      },
+      radios1: "radio-1",
+      radios2: "radio-3",
+      user: false,
+      operator: false,
+      admin: false,
+      roles: ["Участник", "Волонтер", "Призер", "Победитель"],
+      allEvents: [
+        "Хакатон 2021",
+        "Международный форум молодых ученых «РОЛЬ МОЛОДЫХ УЧЕНЫХ В РАЗВИТИИ НАУКИ, ТЕХНИКИ И ИННОВАЦИЙ» посвященный дню независимости Республики Казахстан",
+        "III Международный научный Форум профессорско-преподавательского состава и молодых учёных «ЦИФРОВЫЕ ТЕХНОЛОГИИ: НАУКА, ОБРАЗОВАНИЕ, ИННОВАЦИИ»"
+      ],
+      allProjects: ["Проект 1", "Проект 2", "Проект 3"],
+      allTeams: ["Команда 1", "Команда 2", "Команда 3"],
+
       student: [
         {
           id: 1,
@@ -150,13 +313,12 @@ export default {
         {
           id: 1,
           name: "Поливеб",
-          description:
-            "Студенческая веб-студия",
+          description: "Студенческая веб-студия",
           dateStart: `${new Date("2019-02-18").getDate()}.${
             new Date("2019-02-18").getMonth() + 1
           }.${new Date("2019-02-18").getFullYear()}
          `,
-         dateEnd: `${new Date("2022-06-30").getDate()}.${
+          dateEnd: `${new Date("2022-06-30").getDate()}.${
             new Date("2022-06-30").getMonth() + 1
           }.${new Date("2022-06-30").getFullYear()}
          `,
@@ -167,13 +329,12 @@ export default {
         {
           id: 2,
           name: "Поливеб",
-          description:
-            "Студенческая веб-студия",
+          description: "Студенческая веб-студия",
           dateStart: `${new Date("2019-02-18").getDate()}.${
             new Date("2019-02-18").getMonth() + 1
           }.${new Date("2019-02-18").getFullYear()}
          `,
-         dateEnd: `${new Date("2022-06-30").getDate()}.${
+          dateEnd: `${new Date("2022-06-30").getDate()}.${
             new Date("2022-06-30").getMonth() + 1
           }.${new Date("2022-06-30").getFullYear()}
          `,
@@ -184,19 +345,18 @@ export default {
         {
           id: 3,
           name: "Поливеб",
-          description:
-            "Студенческая веб-студия",
+          description: "Студенческая веб-студия",
           dateStart: `${new Date("2019-02-18").getDate()}.${
             new Date("2019-02-18").getMonth() + 1
           }.${new Date("2019-02-18").getFullYear()}
          `,
-         dateEnd: `${new Date("2022-06-30").getDate()}.${
+          dateEnd: `${new Date("2022-06-30").getDate()}.${
             new Date("2022-06-30").getMonth() + 1
           }.${new Date("2022-06-30").getFullYear()}
          `,
           links: "Сайт: polyweb.agency",
           team: "Главный сайт",
-          participant: 2,
+          participant: 2
         },
         {
           id: 4,
@@ -207,25 +367,82 @@ export default {
             new Date("2020-09-01").getMonth() + 1
           }.${new Date("2020-09-01").getFullYear()}
          `,
-         dateEnd: `${new Date("2021-01-03").getDate()}.${
+          dateEnd: `${new Date("2021-01-03").getDate()}.${
             new Date("2021-01-03").getMonth() + 1
           }.${new Date("2021-01-03").getFullYear()}
          `,
           links: "Репозиторий: https://github.com/Glazkoff/catcherry;",
           team: "Команда 1",
           participant: 1
-        },
+        }
       ].filter(el => {
         return el.participant == this.$route.params.id;
-      }),
+      })
     };
   },
-  methods: {
-    // onLink(id) {
-    //   this.$router.push({ name: "Groups", params: { id: id } });
-    // }
+  mounted() {
+    if (localStorage.getItem("user")) this.user = true;
+    else this.user = false;
+
+    if (localStorage.getItem("operator")) this.operator = true;
+    else this.operator = false;
+
+    if (localStorage.getItem("admin")) this.admin = true;
+    else this.admin = false;
   },
-  computed: {}
+  methods: {
+    myFunc() {
+      console.log(this.$v.form2);
+    },
+    clearProject() {
+      this.$v.form2.project.$model = "";
+    },
+    clearTeam() {
+      this.$v.form2.team.$model = "";
+    },
+    onAddYouInEvent() {
+      let obj = {
+        id: 5,
+        name: this.$v.form.event.$model,
+        location: "",
+        description: "",
+        date: `${new Date("2020-11-20").getDate()}.${
+          new Date("2020-11-20").getMonth() + 1
+        }.${new Date("2020-11-20").getFullYear()}
+         `,
+        role: this.$v.form.role.$model,
+        student: this.$route.params.id
+      };
+
+      this.events.push(obj);
+      this.$v.form.event.$model = "";
+      this.$v.form.role.$model = "";
+    },
+    onAddYouInProject() {
+      let obj = {
+        id: 5,
+        name: this.$v.form2.project.$model,
+        description: "",
+        dateStart: `${new Date("2019-02-18").getDate()}.${
+          new Date("2019-02-18").getMonth() + 1
+        }.${new Date("2019-02-18").getFullYear()}
+         `,
+        dateEnd: `${new Date("2022-06-30").getDate()}.${
+          new Date("2022-06-30").getMonth() + 1
+        }.${new Date("2022-06-30").getFullYear()}
+         `,
+        links: "",
+        team: this.$v.form2.team.$model,
+        participant: this.$route.params.id
+      };
+
+      this.projects.push(obj);
+      this.$v.form2.project.$model = "";
+      this.$v.form2.team.$model = "";
+      this.radios1 = "radio-1";
+      this.radios2 = "radio-3";
+    }
+  }
 };
 </script>
 
