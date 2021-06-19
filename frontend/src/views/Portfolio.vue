@@ -39,11 +39,77 @@
         <v-text-field
           v-if="user && radios1 == 'radio-2'"
           v-model.trim="$v.form2.project.$model"
-          class="mb-3"
           color="light-blue"
           label="Название проекта"
           required
         ></v-text-field>
+        <v-textarea
+          v-if="user && radios1 == 'radio-2'"
+          name="input-7-1"
+          color="light-blue"
+          label="Описание проекта"
+          v-model="formDescription"
+          class="mb-3"
+        ></v-textarea>
+        <v-textarea
+          v-if="user && radios1 == 'radio-2'"
+          name="input-7-1"
+          color="light-blue"
+          label="Ссылки проекта"
+          v-model="formLinks"
+          class="mb-3"
+        ></v-textarea>
+
+        <v-menu
+          v-if="user && radios1 == 'radio-2'"
+          v-model="menu1"
+          :close-on-content-click="true"
+          transition="scale-transition"
+          offset-y
+          max-width="290px"
+          min-width="auto"
+        >
+          <template v-slot:activator="{ on, attrs }">
+            <v-text-field
+              v-model="computedDateFormatted"
+              label="Дата начала проекта"
+              prepend-icon="mdi-calendar"
+              v-bind="attrs"
+              v-on="on"
+            ></v-text-field>
+          </template>
+          <v-date-picker
+            v-model="date"
+            no-title
+            @input="menu2 = false"
+          ></v-date-picker>
+        </v-menu>
+
+        <v-menu
+          v-if="user && radios1 == 'radio-2'"
+          v-model="menu2"
+          :close-on-content-click="true"
+          transition="scale-transition"
+          offset-y
+          max-width="290px"
+          min-width="auto"
+        >
+          <template v-slot:activator="{ on, attrs }">
+            <v-text-field
+              v-model="computedDateFormatted2"
+              label="Дата окончания проекта"
+              prepend-icon="mdi-calendar"
+              v-bind="attrs"
+              v-on="on"
+            ></v-text-field>
+          </template>
+          <v-date-picker
+            v-model="date2"
+            no-title
+            @input="menu2 = false"
+          ></v-date-picker>
+        </v-menu>
+
         <v-select
           v-if="user && radios1 == 'radio-1'"
           class="mb-3"
@@ -87,7 +153,6 @@
             (user && radios1 == 'radio-1' && radios2 == 'radio-4') ||
             (user && radios1 == 'radio-2')
           "
-          @input="myFunc()"
           v-model.trim="$v.form2.team.$model"
           class="mb-3"
           color="light-blue"
@@ -192,6 +257,14 @@ export default {
       }
     }
   },
+  computed: {
+    computedDateFormatted() {
+      return this.formatDate(this.date);
+    },
+    computedDateFormatted2() {
+      return this.formatDate(this.date2);
+    }
+  },
   data() {
     return {
       form: {
@@ -202,8 +275,16 @@ export default {
         project: "",
         team: ""
       },
+      date: new Date().toISOString().substr(0, 10),
+      date2: new Date().toISOString().substr(0, 10),
+      menu1: false,
+      menu2: false,
       radios1: "radio-1",
       radios2: "radio-3",
+      formDescription: "",
+      formLinks: "",
+      formDateStart: "",
+      formDateEnd: "",
       user: false,
       operator: false,
       admin: false,
@@ -391,9 +472,19 @@ export default {
     else this.admin = false;
   },
   methods: {
-    myFunc() {
-      console.log(this.$v.form2);
+    formatDate(date) {
+      if (!date) return null;
+
+      const [year, month, day] = date.split("-");
+      return `${day}.${month}.${year}`;
     },
+    parseDate(date) {
+      if (!date) return null;
+
+      const [month, day, year] = date.split("/");
+      return `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
+    },
+
     clearProject() {
       this.$v.form2.project.$model = "";
     },
@@ -422,22 +513,18 @@ export default {
       let obj = {
         id: 5,
         name: this.$v.form2.project.$model,
-        description: "",
-        dateStart: `${new Date("2019-02-18").getDate()}.${
-          new Date("2019-02-18").getMonth() + 1
-        }.${new Date("2019-02-18").getFullYear()}
-         `,
-        dateEnd: `${new Date("2022-06-30").getDate()}.${
-          new Date("2022-06-30").getMonth() + 1
-        }.${new Date("2022-06-30").getFullYear()}
-         `,
-        links: "",
+        description: this.formDescription,
+        dateStart: this.computedDateFormatted,
+        dateEnd: this.computedDateFormatted2,
+        links: this.formLinks,
         team: this.$v.form2.team.$model,
         participant: this.$route.params.id
       };
 
       this.projects.push(obj);
       this.$v.form2.project.$model = "";
+      this.formDescription = "";
+      this.formLinks = "";
       this.$v.form2.team.$model = "";
       this.radios1 = "radio-1";
       this.radios2 = "radio-3";

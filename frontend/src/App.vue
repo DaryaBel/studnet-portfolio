@@ -35,8 +35,8 @@
           <v-list-item v-if="user">
             <v-list-item-title  @click="onLinkPortfolio(1)">Профиль</v-list-item-title>
           </v-list-item>
-          <v-list-item v-if="user">
-            <v-list-item-title >Проекты</v-list-item-title>
+          <v-list-item v-if="operator">
+            <v-list-item-title>Университеты</v-list-item-title>
           </v-list-item>
           <v-list-item v-if="user">
             <v-list-item-title >Мероприятия</v-list-item-title>
