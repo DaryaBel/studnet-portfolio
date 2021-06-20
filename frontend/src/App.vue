@@ -6,7 +6,10 @@
           v-if="user || operator || admin"
           @click="drawer = true"
         ></v-app-bar-nav-icon>
-        <h2 class="mr-8 font-weight-regular pointer" @click="onLinkUniversities()">
+        <h2
+          class="mr-8 font-weight-regular pointer"
+          @click="onLinkUniversities()"
+        >
           Портфолио
         </h2>
 
@@ -26,23 +29,54 @@
       </v-container>
     </v-app-bar>
 
-    <v-navigation-drawer v-model="drawer" absolute temporary>
+    <v-navigation-drawer v-model="drawer" fixed temporary>
       <v-list nav dense>
         <v-list-item-group
           v-model="group"
           active-class="light-blue--text text--accent-4"
         >
-          <v-list-item v-if="user">
-            <v-list-item-title  @click="onLinkPortfolio(1)">Профиль</v-list-item-title>
+          <v-list-item v-if="user" @click="onLinkPortfolio(1)">
+            <v-list-item-title>Профиль</v-list-item-title>
           </v-list-item>
-          <v-list-item v-if="operator">
+          <v-list-item
+            v-if="operator || admin"
+            @click="onLinkAllUniversities()"
+          >
             <v-list-item-title>Университеты</v-list-item-title>
           </v-list-item>
-          <v-list-item v-if="user">
-            <v-list-item-title >Мероприятия</v-list-item-title>
+          <v-list-item v-if="operator || admin" @click="onLinkAllFaculties()">
+            <v-list-item-title>Факультеты</v-list-item-title>
           </v-list-item>
-          <v-list-item @click="logOut()" >
-            <v-list-item-title v-if="user || operator || admin"  class="danger--text">Выйти</v-list-item-title>
+          <v-list-item
+            v-if="operator || admin"
+            @click="onLinkAllSpecialities()"
+          >
+            <v-list-item-title>Специальности</v-list-item-title>
+          </v-list-item>
+          <v-list-item v-if="operator || admin" @click="onLinkAllGroups()">
+            <v-list-item-title>Группы</v-list-item-title> </v-list-item
+          >
+          <v-list-item v-if="operator || admin" @click="onLinkAllEvents()">
+            <v-list-item-title>Мероприятия</v-list-item-title>
+          </v-list-item>
+          <v-list-item
+            v-if="operator || admin"
+            @click="onLinkAllStudentInEvents()"
+          >
+            <v-list-item-title>Студенты в мероприятиях</v-list-item-title>
+          </v-list-item>
+          <v-list-item v-if="operator || admin" @click="onLinkAllProjects()">
+            <v-list-item-title>Проекты</v-list-item-title>
+          </v-list-item>
+          <v-list-item v-if="operator || admin" @click="onLinkAllTeams()">
+            <v-list-item-title>Команды</v-list-item-title>
+          </v-list-item>
+          <v-list-item @click="logOut()">
+            <v-list-item-title
+              v-if="user || operator || admin"
+              class="danger--text"
+              >Выйти</v-list-item-title
+            >
           </v-list-item>
         </v-list-item-group>
       </v-list>
@@ -80,17 +114,40 @@ export default {
 
     if (localStorage.getItem("operator")) this.operator = true;
     else this.operator = false;
-    
+
     if (localStorage.getItem("admin")) this.admin = true;
     else this.admin = false;
   },
   methods: {
-    onLinkUniversities() {
-      this.$router.push({ name: "Universities" });
+    onLinkAllUniversities() {
+      this.$router.push({ name: "AllUniversities" });
     },
+    onLinkAllFaculties() {
+      this.$router.push({ name: "AllFaculties" });
+    },
+    onLinkAllSpecialities() {
+      this.$router.push({ name: "AllSpecialities" });
+    },
+    onLinkAllGroups() {
+      this.$router.push({ name: "AllGroups" });
+    },
+    onLinkAllEvents() {
+      this.$router.push({ name: "AllEvents" });
+    },
+    onLinkAllStudentInEvents() {
+      this.$router.push({ name: "AllStudentInEvents" });
+    },
+    onLinkAllProjects() {
+      this.$router.push({ name: "AllProjects" });
+    },
+    onLinkAllTeams() {
+      this.$router.push({ name: "AllTeams" });
+    },
+
     onLinkAuth() {
       this.$router.push({ name: "Auth" });
     },
+
     onLinkPortfolio(id) {
       this.$router.push({ name: "Portfolio", params: { id: id } });
     },
@@ -103,7 +160,7 @@ export default {
       this.admin = false;
       if (this.$router.currentRoute.name != "Auth") {
         this.$router.push({ name: "Auth" });
-      } 
+      }
     }
   }
 };

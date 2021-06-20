@@ -21,7 +21,7 @@
     <v-row>
       <v-col>
         <h3 class="mb-3">Участие в проектах</h3>
-        <v-radio-group v-if="user" v-model="radios1" mandatory>
+        <v-radio-group v-if="user " v-model="radios1" mandatory>
           <h4 class="light-blue--text mb-2">Проект:</h4>
           <v-radio
             color="light-blue"

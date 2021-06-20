@@ -8,6 +8,16 @@ import Students from "../views/Students.vue";
 import Portfolio from "../views/Portfolio.vue";
 import Auth from "../views/Auth.vue";
 
+import AllUniversities from "../views/all/AllUniversities.vue";
+import AllFaculties from "../views/all/AllFaculties.vue";
+import AllSpecialities from "../views/all/AllSpecialities.vue";
+import AllGroups from "../views/all/AllGroups.vue";
+import AllEvents from "../views/all/AllEvents.vue";
+import AllStudentInEvents from "../views/all/AllStudentInEvents.vue";
+import AllProjects from "../views/all/AllProjects.vue";
+import AllTeams from "../views/all/AllTeams.vue";
+
+
 Vue.use(VueRouter);
 
 const routes = [
@@ -45,6 +55,46 @@ const routes = [
     path: "/",
     name: "Auth",
     component: Auth
+  },
+  {
+    path: "/all-universities",
+    name: "AllUniversities",
+    component: AllUniversities
+  },
+  {
+    path: "/all-faculties",
+    name: "AllFaculties",
+    component: AllFaculties
+  },
+  {
+    path: "/all-specialities",
+    name: "AllSpecialities",
+    component: AllSpecialities
+  },
+  {
+    path: "/all-groups",
+    name: "AllGroups",
+    component: AllGroups
+  },
+  {
+    path: "/all-events",
+    name: "AllEvents",
+    component: AllEvents
+  },
+  {
+    path: "/all-students-in-events",
+    name: "AllStudentInEvents",
+    component: AllStudentInEvents
+  },
+  {
+    path: "/all-projects",
+    name: "AllProjects",
+    component: AllProjects
+  },
+  {
+    path: "/all-teams",
+    name: "AllTeams",
+    component: AllTeams
   }
 ];
 
