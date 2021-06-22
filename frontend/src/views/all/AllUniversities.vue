@@ -132,7 +132,7 @@
 
 <script>
 export default {
-  name: "Universities",
+  name: "AllUniversities",
   data() {
     return {
       flag: 0,

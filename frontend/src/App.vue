@@ -38,24 +38,18 @@
           <v-list-item v-if="user" @click="onLinkPortfolio(1)">
             <v-list-item-title>Профиль</v-list-item-title>
           </v-list-item>
-          <v-list-item
-            v-if="operator || admin"
-            @click="onLinkAllUniversities()"
-          >
+          <v-list-item v-if="admin" @click="onLinkAllUniversities()">
             <v-list-item-title>Университеты</v-list-item-title>
           </v-list-item>
-          <v-list-item v-if="operator || admin" @click="onLinkAllFaculties()">
+          <v-list-item v-if="admin" @click="onLinkAllFaculties()">
             <v-list-item-title>Факультеты</v-list-item-title>
           </v-list-item>
-          <v-list-item
-            v-if="operator || admin"
-            @click="onLinkAllSpecialities()"
-          >
+          <v-list-item v-if="admin" @click="onLinkAllSpecialities()">
             <v-list-item-title>Специальности</v-list-item-title>
           </v-list-item>
-          <v-list-item v-if="operator || admin" @click="onLinkAllGroups()">
-            <v-list-item-title>Группы</v-list-item-title> </v-list-item
-          >
+          <v-list-item v-if="admin" @click="onLinkAllGroups()">
+            <v-list-item-title>Группы</v-list-item-title>
+          </v-list-item>
           <v-list-item v-if="operator || admin" @click="onLinkAllEvents()">
             <v-list-item-title>Мероприятия</v-list-item-title>
           </v-list-item>
@@ -119,6 +113,9 @@ export default {
     else this.admin = false;
   },
   methods: {
+    onLinkUniversities() {
+      this.$router.push({ name: "Universities" });
+    },
     onLinkAllUniversities() {
       this.$router.push({ name: "AllUniversities" });
     },

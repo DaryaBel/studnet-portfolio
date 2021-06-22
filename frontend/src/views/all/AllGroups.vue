@@ -226,7 +226,7 @@
 
 <script>
 export default {
-  name: "Groups",
+  name: "AllGroups",
   data() {
     return {
       fullCourse: "",
