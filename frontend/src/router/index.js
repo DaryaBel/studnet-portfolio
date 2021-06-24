@@ -7,6 +7,7 @@ import Groups from "../views/Groups.vue";
 import Students from "../views/Students.vue";
 import Portfolio from "../views/Portfolio.vue";
 import Auth from "../views/Auth.vue";
+import Dashboard from "../views/Dashboard.vue";
 
 import AllUniversities from "../views/all/AllUniversities.vue";
 import AllFaculties from "../views/all/AllFaculties.vue";
@@ -21,6 +22,11 @@ import AllTeams from "../views/all/AllTeams.vue";
 Vue.use(VueRouter);
 
 const routes = [
+  {
+    path: "/dashboard",
+    name: "Dashboard",
+    component: Dashboard
+  },
   {
     path: "/universities",
     name: "Universities",

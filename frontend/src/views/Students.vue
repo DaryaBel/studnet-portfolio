@@ -13,6 +13,36 @@
           append-icon="mdi-magnify"
           v-model="findString"
         ></v-text-field>
+        <p v-if="filterItems.length != 0">
+          Найдено {{ filterItems.length }}
+          <span
+            v-if="
+              filterItems.length % 10 == 1 && filterItems.length % 100 != 11
+            "
+            >строка</span
+          >
+          <span
+            v-if="
+              filterItems.length % 10 >= 2 &&
+              filterItems.length % 10 <= 4 &&
+              filterItems.length % 100 != 12 &&
+              filterItems.length % 100 != 13 &&
+              filterItems.length % 100 != 14
+            "
+            >строки</span
+          >
+          <span
+            v-if="
+              filterItems.length % 10 >= 5 &&
+              filterItems.length % 10 <= 9 &&
+              filterItems.length % 10 == 0 &&
+              filterItems.length % 100 >= 10 &&
+              filterItems.length % 100 <= 20
+            "
+            >строк</span
+          >
+          с результатами
+        </p>
       </v-col>
     </v-row>
     <v-row>

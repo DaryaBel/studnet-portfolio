@@ -7,7 +7,40 @@
         </h2>
       </v-col>
     </v-row>
-
+    <v-row>
+      <v-col>
+        <p v-if="studentInEvents.length != 0">
+          Найдено {{ studentInEvents.length }}
+          <span
+            v-if="
+              studentInEvents.length % 10 == 1 && studentInEvents.length % 100 != 11
+            "
+            >строка</span
+          >
+          <span
+            v-if="
+              studentInEvents.length % 10 >= 2 &&
+              studentInEvents.length % 10 <= 4 &&
+              studentInEvents.length % 100 != 12 &&
+              studentInEvents.length % 100 != 13 &&
+              studentInEvents.length % 100 != 14
+            "
+            >строки</span
+          >
+          <span
+            v-if="
+              studentInEvents.length % 10 >= 5 &&
+              studentInEvents.length % 10 <= 9 &&
+              studentInEvents.length % 10 == 0 &&
+              studentInEvents.length % 100 >= 10 &&
+              studentInEvents.length % 100 <= 20
+            "
+            >строк</span
+          >
+          с результатами
+        </p>
+      </v-col>
+    </v-row>
     <v-row>
       <v-col>
         <v-expansion-panels>

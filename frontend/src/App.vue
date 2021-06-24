@@ -1,6 +1,6 @@
 <template>
   <v-app id="inspire">
-    <v-app-bar class="my-header" app color="light-blue" dark>
+    <v-app-bar class="my-header d-print-none" app color="light-blue" dark>
       <v-container class="py-0 fill-height">
         <v-app-bar-nav-icon
           v-if="user || operator || admin"
@@ -35,6 +35,9 @@
           v-model="group"
           active-class="light-blue--text text--accent-4"
         >
+          <v-list-item v-if="admin" @click="onLinkDashboard()">
+            <v-list-item-title>Дашборд</v-list-item-title>
+          </v-list-item>
           <v-list-item v-if="user" @click="onLinkPortfolio(1)">
             <v-list-item-title>Профиль</v-list-item-title>
           </v-list-item>
@@ -113,6 +116,9 @@ export default {
     else this.admin = false;
   },
   methods: {
+    onLinkDashboard() {
+      this.$router.push({ name: "Dashboard" });
+    },
     onLinkUniversities() {
       this.$router.push({ name: "Universities" });
     },
@@ -194,6 +200,12 @@ export default {
   }
   main.v-main {
     padding: 136px 0px 0px !important;
+  }
+}
+
+@media print {
+  main.v-main {
+    padding: 0 0px 0px !important;
   }
 }
 </style>

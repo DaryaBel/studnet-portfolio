@@ -7,7 +7,7 @@
     </v-row>
     <v-row>
       <v-col>
-        <v-card class="mb-2 pb-3" elevation="2">
+        <v-card class="d-print-none mb-2 pb-3" elevation="2">
           <v-card-title>{{ student.fullname }}</v-card-title>
           <v-card-subtitle class="pb-0">{{
             student.birthdate
@@ -16,12 +16,25 @@
             E-mail: {{ student.email }}
           </p>
         </v-card>
+
+        <v-card class="mb-2 pb-3 my-print" elevation="0">
+          <v-card-title>{{ student.fullname }}</v-card-title>
+          <v-card-subtitle class="pb-0">{{
+            student.birthdate
+          }}</v-card-subtitle>
+          <p class="ma-4 mt-0 mb-2">E-mail: {{ student.email }}</p>
+        </v-card>
       </v-col>
     </v-row>
     <v-row>
       <v-col>
         <h3 class="mb-3">Участие в проектах</h3>
-        <v-radio-group v-if="user " v-model="radios1" mandatory>
+        <v-radio-group
+          class="d-print-none"
+          v-if="user"
+          v-model="radios1"
+          mandatory
+        >
           <h4 class="light-blue--text mb-2">Проект:</h4>
           <v-radio
             color="light-blue"
@@ -42,6 +55,7 @@
           color="light-blue"
           label="Название проекта"
           required
+          class="d-print-none"
         ></v-text-field>
         <v-textarea
           v-if="user && radios1 == 'radio-2'"
@@ -49,7 +63,7 @@
           color="light-blue"
           label="Описание проекта"
           v-model="formDescription"
-          class="mb-3"
+          class="mb-3 d-print-none"
         ></v-textarea>
         <v-textarea
           v-if="user && radios1 == 'radio-2'"
@@ -57,10 +71,11 @@
           color="light-blue"
           label="Ссылки проекта"
           v-model="formLinks"
-          class="mb-3"
+          class="mb-3 d-print-none"
         ></v-textarea>
 
         <v-menu
+          class="d-print-none"
           v-if="user && radios1 == 'radio-2'"
           v-model="menu1"
           :close-on-content-click="true"
@@ -91,6 +106,7 @@
           :close-on-content-click="true"
           transition="scale-transition"
           offset-y
+          class="d-print-none"
           max-width="290px"
           min-width="auto"
         >
@@ -112,7 +128,7 @@
 
         <v-select
           v-if="user && radios1 == 'radio-1'"
-          class="mb-3"
+          class="mb-3 d-print-none"
           :items="allProjects"
           label="Проект"
           dense
@@ -124,6 +140,7 @@
           v-if="user && radios1 == 'radio-1'"
           v-model="radios2"
           mandatory
+          class="d-print-none"
         >
           <h4 class="light-blue--text mb-2">Команда:</h4>
           <v-radio
@@ -145,6 +162,7 @@
           label="Команда"
           dense
           required
+          class="d-print-none"
           v-model.trim="$v.form2.team.$model"
           color="light-blue"
         ></v-select>
@@ -154,14 +172,14 @@
             (user && radios1 == 'radio-2')
           "
           v-model.trim="$v.form2.team.$model"
-          class="mb-3"
+          class="mb-3 d-print-none"
           color="light-blue"
           label="Название команды"
           required
         ></v-text-field>
         <v-btn
           v-if="user"
-          class="mb-5 white--text"
+          class="mb-5 white--text d-print-none"
           color="light-blue"
           @click="onAddYouInProject()"
           block="block"
@@ -181,11 +199,12 @@
           <span>Не найдено</span>
         </div>
       </v-col>
+
       <v-col>
         <h3 class="mb-6">Участие в мероприятиях</h3>
         <v-select
           v-if="user"
-          class="mb-3"
+          class="mb-3 d-print-none"
           :items="allEvents"
           label="Мероприятие"
           dense
@@ -195,7 +214,7 @@
         ></v-select>
         <v-select
           v-if="user"
-          class="mb-3"
+          class="mb-3 d-print-none"
           :items="roles"
           label="Ваша роль"
           dense
@@ -205,7 +224,7 @@
         ></v-select>
         <v-btn
           v-if="user"
-          class="mb-5 white--text"
+          class="mb-5 white--text d-print-none"
           color="light-blue"
           @click="onAddYouInEvent()"
           block="block"
@@ -537,6 +556,14 @@ export default {
 @media (max-width: 365px) {
   div.container.my-container {
     padding: 8px !important;
+  }
+}
+.my-print {
+  display: none;
+}
+@media print {
+  .my-print {
+    display: block !important;
   }
 }
 </style>

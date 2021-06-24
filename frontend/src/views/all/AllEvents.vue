@@ -13,6 +13,36 @@
           append-icon="mdi-magnify"
           v-model="findString"
         ></v-text-field>
+        <p v-if="filterItems.length != 0">
+          Найдено {{ filterItems.length }}
+          <span
+            v-if="
+              filterItems.length % 10 == 1 && filterItems.length % 100 != 11
+            "
+            >строка</span
+          >
+          <span
+            v-if="
+              filterItems.length % 10 >= 2 &&
+              filterItems.length % 10 <= 4 &&
+              filterItems.length % 100 != 12 &&
+              filterItems.length % 100 != 13 &&
+              filterItems.length % 100 != 14
+            "
+            >строки</span
+          >
+          <span
+            v-if="
+              filterItems.length % 10 >= 5 &&
+              filterItems.length % 10 <= 9 &&
+              filterItems.length % 10 == 0 &&
+              filterItems.length % 100 >= 10 &&
+              filterItems.length % 100 <= 20
+            "
+            >строк</span
+          >
+          с результатами
+        </p>
       </v-col>
     </v-row>
     <v-row>
@@ -92,7 +122,9 @@
             ></v-text-field>
           </v-card-title>
           <v-card-subtitle>
-            <span v-if="flag != event.id">{{event.location}}. {{event.date}}</span>
+            <span v-if="flag != event.id"
+              >{{ event.location }}. {{ event.date }}</span
+            >
             <v-text-field
               v-if="flag == event.id"
               light="light"
@@ -101,29 +133,29 @@
               v-model="formLocation"
             ></v-text-field>
             <v-menu
-            v-if="flag == event.id"
-                v-model="menu2"
-                :close-on-content-click="true"
-                transition="scale-transition"
-                offset-y
-                max-width="290px"
-                min-width="auto"
-              >
-                <template v-slot:activator="{ on, attrs }">
-                  <v-text-field
-                    v-model="computedDateFormatted2"
-                    label="Дата мероприятия"
-                    prepend-icon="mdi-calendar"
-                    v-bind="attrs"
-                    v-on="on"
-                  ></v-text-field>
-                </template>
-                <v-date-picker
-                  v-model="date2"
-                  no-title
-                  @input="menu2 = false"
-                ></v-date-picker>
-              </v-menu>
+              v-if="flag == event.id"
+              v-model="menu2"
+              :close-on-content-click="true"
+              transition="scale-transition"
+              offset-y
+              max-width="290px"
+              min-width="auto"
+            >
+              <template v-slot:activator="{ on, attrs }">
+                <v-text-field
+                  v-model="computedDateFormatted2"
+                  label="Дата мероприятия"
+                  prepend-icon="mdi-calendar"
+                  v-bind="attrs"
+                  v-on="on"
+                ></v-text-field>
+              </template>
+              <v-date-picker
+                v-model="date2"
+                no-title
+                @input="menu2 = false"
+              ></v-date-picker>
+            </v-menu>
           </v-card-subtitle>
           <v-card-text>
             <span v-if="flag != event.id">
@@ -155,11 +187,7 @@
             >
               Сохранить
             </v-btn>
-            <v-btn
-              color="red"
-              class="white--text"
-              @click="onDelete(event.id)"
-            >
+            <v-btn color="red" class="white--text" @click="onDelete(event.id)">
               Удалить
             </v-btn>
           </v-card-actions>
@@ -311,14 +339,13 @@ export default {
         return this.events;
       }
     },
-     computedDateFormatted() {
+    computedDateFormatted() {
       return this.formatDate(this.date);
     },
     computedDateFormatted2() {
       return this.formatDate(this.date2);
     }
-  },
-  
+  }
 };
 </script>
 
