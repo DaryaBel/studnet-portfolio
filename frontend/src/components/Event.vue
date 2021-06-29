@@ -28,21 +28,29 @@
         </v-icon>
       </v-avatar>
       <h4 class="light-blue--text mb-1">{{ event.role }}</h4>
-      {{ event.name }}
-      <p class="subtitle-1">{{ event.date }}</p>
+      {{ event.event.name }}
+      <p class="subtitle-1">{{ formatDate(event.event.date) }}</p>
     </v-banner>
 
     <v-banner elevation="0" class="mb-4 my-print">
       <h4 class="mb-1">{{ event.role }}</h4>
-      {{ event.name }}
-      <p class="subtitle-1">{{ event.date }}</p>
+      {{ event.event.name }}
+      <p class="subtitle-1">{{ formatDate(event.event.date) }}</p>
     </v-banner>
   </div>
 </template>
 <script>
 export default {
   name: "Event",
-  props: ["event"]
+  props: ["event"],
+  methods: {
+    formatDate(date) {
+      if (!date) return null;
+
+      const [year, month, day] = date.split("-");
+      return `${day}.${month}.${year}`;
+    }
+  }
 };
 </script>
 <style lang="scss" scoped>

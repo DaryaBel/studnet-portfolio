@@ -21,7 +21,7 @@ class Teams(models.Model):
     name = models.CharField("Название", max_length=150)
     project = models.ForeignKey(Projects, on_delete=models.CASCADE, verbose_name="Проект", related_name="teamsForProject")
     participants = models.ManyToManyField(
-        Students, verbose_name="Участники", related_name="studentsForTeam")
+        Students, verbose_name="Участники", related_name="studentsForTeam", null=True, blank=True)
 
     def __str__(self):
         return f"{self.name} - {self.project}"

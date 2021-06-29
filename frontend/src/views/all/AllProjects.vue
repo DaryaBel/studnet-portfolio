@@ -14,12 +14,11 @@
           v-model="findString"
         ></v-text-field>
         <p v-if="filterItems.length != 0">
-          Найдено {{ filterItems.length }}
           <span
             v-if="
               filterItems.length % 10 == 1 && filterItems.length % 100 != 11
             "
-            >строка</span
+            >Найдена {{ filterItems.length }} строка</span
           >
           <span
             v-if="
@@ -29,17 +28,16 @@
               filterItems.length % 100 != 13 &&
               filterItems.length % 100 != 14
             "
-            >строки</span
+            >Найдено {{ filterItems.length }} строки</span
           >
           <span
             v-if="
-              filterItems.length % 10 >= 5 &&
-              filterItems.length % 10 <= 9 &&
-              filterItems.length % 10 == 0 &&
-              filterItems.length % 100 >= 10 &&
-              filterItems.length % 100 <= 20
+              (filterItems.length % 10 >= 5 && filterItems.length % 10 <= 9) ||
+              (filterItems.length % 100 >= 10 &&
+                filterItems.length % 100 <= 20) ||
+              filterItems.length % 10 == 0
             "
-            >строк</span
+            >Найдено {{ filterItems.length }} строк</span
           >
           с результатами
         </p>
@@ -117,7 +115,12 @@
                 label="Ссылки"
                 v-model="fullLinks"
               ></v-textarea>
-              <v-btn color="light-blue" class="white--text" @click="onAdd()">
+              <v-btn
+                :disabled="!addBtn"
+                color="light-blue"
+                class="white--text"
+                @click="onAdd()"
+              >
                 Добавить
               </v-btn>
             </v-expansion-panel-content>
@@ -146,7 +149,8 @@
           </v-card-title>
           <v-card-subtitle>
             <span v-if="flag != project.id"
-              >{{ project.dateStart }} - {{ project.dateEnd }}</span
+              >{{ formatDate(project.dateStart) }} -
+              {{ formatDate(project.dateEnd) }}</span
             >
             <v-menu
               v-if="flag == project.id"
@@ -209,7 +213,7 @@
               v-model="formDescription"
             ></v-textarea>
           </v-card-text>
-           <v-card-text>
+          <v-card-text>
             <span v-if="flag != project.id">
               {{ project.links }}
             </span>
@@ -239,7 +243,11 @@
             >
               Сохранить
             </v-btn>
-            <v-btn color="red" class="white--text" @click="onDelete(project.id)">
+            <v-btn
+              color="red"
+              class="white--text"
+              @click="onDelete(project.id)"
+            >
               Удалить
             </v-btn>
           </v-card-actions>
@@ -253,22 +261,30 @@
 </template>
 
 <script>
+import {
+  PROJECTS,
+  CREATEPROJECT,
+  UPDATEPROJECT,
+  DELETEPROJECT
+} from "@/graphql/queries.js";
+
 export default {
   name: "AllProjects",
+  apollo: {
+    allProjects: {
+      query: PROJECTS
+    }
+  },
   data() {
     return {
       flag: 0,
       fullName: "",
-      fullDateStart: "",
       fullDescription: "",
-      fullDateEnd: "",
       fullLinks: "",
 
       findString: "",
       formName: "",
-      formDateStart: "",
       formDescription: "",
-      formDateEnd: "",
       formLinks: "",
 
       date1: new Date().toISOString().substr(0, 10),
@@ -279,38 +295,7 @@ export default {
       menu1: false,
       menu2: false,
       menu3: false,
-      menu4: false,
-      projects: [
-        {
-          id: 1,
-          name: "Поливеб",
-          description: "Студенческая веб-студия",
-          dateStart: `${new Date("2019-02-18").getDate()}.${
-            new Date("2019-02-18").getMonth() + 1
-          }.${new Date("2019-02-18").getFullYear()}
-         `,
-          dateEnd: `${new Date("2022-06-30").getDate()}.${
-            new Date("2022-06-30").getMonth() + 1
-          }.${new Date("2022-06-30").getFullYear()}
-         `,
-          links: "Сайт: polyweb.agency"
-        },
-        {
-          id: 4,
-          name: "Catcherry",
-          description:
-            "Цель проекта -  разработать систему оценки продуктивности сотрудников и анализа данных о рабочих процессах, а также алгоритмов аналитических предсказаний и рекомендаций  с использованием механик геймификации для повышения производительности труда конкретных работников и команд различного размера в целом.",
-          dateStart: `${new Date("2020-09-01").getDate()}.${
-            new Date("2020-09-01").getMonth() + 1
-          }.${new Date("2020-09-01").getFullYear()}
-         `,
-          dateEnd: `${new Date("2021-01-03").getDate()}.${
-            new Date("2021-01-03").getMonth() + 1
-          }.${new Date("2021-01-03").getFullYear()}
-         `,
-          links: "Репозиторий: https://github.com/Glazkoff/catcherry;"
-        }
-      ]
+      menu4: false
     };
   },
   methods: {
@@ -320,72 +305,107 @@ export default {
       const [year, month, day] = date.split("-");
       return `${day}.${month}.${year}`;
     },
-    parseDate(date) {
-      if (!date) return null;
-
-      const [month, day, year] = date.split("/");
-      return `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
-    },
+    // Исправлено: добавление
     onAdd() {
-      let obj = {
-        id: 6,
-        name: this.fullName,
-        dateStart: this.computedDateFormatted1,
-        description: this.fullDescription,
-        links: this.fullLinks,
-        dateEnd: this.computedDateFormatted2
-      };
-      this.projects.push(obj);
-      this.fullLinks = "";
-      this.fullDateStart = "";
-      this.fullDateEnd = "";
-      this.fullDescription = "";
-      this.fullName = "";
-    },
+      this.$apollo
+        .mutate({
+          mutation: CREATEPROJECT,
+          variables: {
+            name: this.fullName,
+            dateStart: this.date1,
+            description: this.fullDescription,
+            links: this.fullLinks,
+            dateEnd: this.date2
+          }
+        })
+        .then(() => {
+          this.$apollo.queries.allProjects.refresh();
+          this.$apollo.queries.allProjects.refetch();
+          this.fullLinks = "";
+          this.fullDescription = "";
+          this.date1 = new Date().toISOString().substr(0, 10);
+          this.date2 = new Date().toISOString().substr(0, 10);
 
-    onDelete(id) {
-      let index = this.projects.findIndex(el => {
-        return el.id == id;
-      });
-      this.projects.splice(index, 1);
+          this.fullName = "";
+        })
+        .catch(error => {
+          console.error(error);
+        });
     },
+    // Исправлено: удаление
+    onDelete(id) {
+      this.flag = 0;
+      this.$apollo
+        .mutate({
+          mutation: DELETEPROJECT,
+          variables: {
+            projectId: id
+          }
+        })
+        .then(() => {
+          this.$apollo.queries.allProjects.refresh();
+          this.$apollo.queries.allProjects.refetch();
+        })
+        .catch(error => {
+          console.error(error);
+        });
+    },
+    // Исправлено: обновление
     onEdit(project) {
       if (this.flag == 0) {
         this.flag = project.id;
         this.formDescription = project.description;
         this.formLinks = project.links;
-        this.formDateStart = project.dateStart;
-        this.formDateEnd = project.dateEnd;
+        this.date3 = new Date(project.dateStart).toISOString().substr(0, 10);
+        this.date4 = new Date(project.dateEnd).toISOString().substr(0, 10);
         this.formName = project.name;
       } else {
         this.flag = 0;
-        let index = this.projects.findIndex(el => {
-          return el.id == project.id;
-        });
-        this.projects[index].links = this.formLocation;
-        this.projects[index].dateStart = this.computedDateFormatted3;
-        this.projects[index].dateEnd = this.computedDateFormatted4;
-        this.projects[index].description = this.formDescription;
-        this.projects[index].name = this.formName;
+        this.$apollo
+          .mutate({
+            mutation: UPDATEPROJECT,
+            variables: {
+              dateEnd: this.date4,
+              dateStart: this.date3,
+              description: this.formDescription,
+              links: this.formLinks,
+              name: this.formName,
+              projectId: project.id
+            }
+          })
+          .then(() => {
+            this.$apollo.queries.allProjects.refresh();
+            this.$apollo.queries.allProjects.refetch();
+          })
+          .catch(error => {
+            console.error(error);
+          });
       }
     }
   },
   computed: {
+    addBtn() {
+      if (this.fullName != "" && this.fullName != "" && this.fullLinks != "")
+        return true;
+      else return false;
+    },
     filterItems() {
-      if (this.findString !== "") {
-        return this.projects.filter(el => {
-          return (
-            el.name
-              .toLowerCase()
-              .split(" ")
-              .join("")
-              .indexOf(this.findString.toLowerCase().split(" ").join("")) !==
-              -1 && el.name !== ""
-          );
-        });
-      } else {
-        return this.projects;
-      }
+      if (this.allProjects != null || this.allProjects != undefined) {
+        if (this.findString !== "") {
+          return this.allProjects.filter(el => {
+            return (
+              el.name
+                .toLowerCase()
+                .split(" ")
+                .join("")
+                .indexOf(this.findString.toLowerCase().split(" ").join("")) !==
+                -1 && el.name !== ""
+            );
+          });
+        } else {
+          return this.allProjects;
+        }
+      } else return [];
     },
     computedDateFormatted1() {
       return this.formatDate(this.date1);

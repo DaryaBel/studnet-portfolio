@@ -14,12 +14,11 @@
           v-model="findString"
         ></v-text-field>
         <p v-if="filterItems.length != 0">
-          Найдено {{ filterItems.length }}
           <span
             v-if="
               filterItems.length % 10 == 1 && filterItems.length % 100 != 11
             "
-            >строка</span
+            >Найдена {{ filterItems.length }} строка</span
           >
           <span
             v-if="
@@ -29,17 +28,16 @@
               filterItems.length % 100 != 13 &&
               filterItems.length % 100 != 14
             "
-            >строки</span
+            >Найдено {{ filterItems.length }} строки</span
           >
           <span
             v-if="
-              filterItems.length % 10 >= 5 &&
-              filterItems.length % 10 <= 9 &&
-              filterItems.length % 10 == 0 &&
-              filterItems.length % 100 >= 10 &&
-              filterItems.length % 100 <= 20
+              (filterItems.length % 10 >= 5 && filterItems.length % 10 <= 9) ||
+              (filterItems.length % 100 >= 10 &&
+                filterItems.length % 100 <= 20) ||
+              filterItems.length % 10 == 0
             "
-            >строк</span
+            >Найдено {{ filterItems.length }} строк</span
           >
           с результатами
         </p>
@@ -56,7 +54,9 @@
           <v-card-title>{{ specialization.name }}</v-card-title>
           <v-card-subtitle>{{ specialization.codeName }}</v-card-subtitle>
           <v-card-actions>
-            <v-btn text color="light-blue" @click="onLink(specialization.id)"> Выбрать </v-btn>
+            <v-btn text color="light-blue" @click="onLink(specialization.id)">
+              Выбрать
+            </v-btn>
           </v-card-actions>
         </v-card>
       </v-col>
@@ -68,31 +68,22 @@
 </template>
 
 <script>
+import { SPECIALIZATIONSOFFACULTY } from "@/graphql/queries.js";
 export default {
   name: "Specializations",
+  apollo: {
+    faculty: {
+      query: SPECIALIZATIONSOFFACULTY,
+      variables() {
+        return {
+          facultyId: this.$route.params.id
+        };
+      }
+    }
+  },
   data() {
     return {
-      findString: "",
-      specializations: [
-        {
-          id: 1,
-          name: "Информатика и вычислительная техника",
-          codeName: "09.03.01",
-          faculty: 1
-        },
-        {
-          id: 2,
-          name: "Прикладная математика и информатика",
-          codeName: "01.03.02",
-          faculty: 1
-        },
-        {
-          id: 3,
-          name: "Информационная безопасность автоматизированных систем",
-          codeName: "10.05.03",
-          faculty: 1
-        }
-      ]
+      findString: ""
     };
   },
   methods: {
@@ -102,31 +93,29 @@ export default {
   },
   computed: {
     filterItems() {
-      if (this.findString !== "") {
-        return this.specializations.filter(el => {
-          return (
-            (el.name
-              .toLowerCase()
-              .split(" ")
-              .join("")
-              .indexOf(this.findString.toLowerCase().split(" ").join("")) !==
-              -1 &&
-              el.name !== "") ||
-            (el.codeName
-              .toLowerCase()
-              .split(" ")
-              .join("")
-              .indexOf(this.findString.toLowerCase().split(" ").join("")) !==
-              -1 &&
-              el.codeName !== "" &&
-              el.faculty == this.$route.params.id)
-          );
-        });
-      } else {
-        return this.specializations.filter(el => {
-          return el.faculty == this.$route.params.id;
-        });
-      }
+      if (this.faculty != null || this.faculty != undefined) {
+        let specializations = this.faculty.specializationsOfFaculty;
+        if (this.findString !== "") {
+          return specializations.filter(el => {
+            return (
+              (el.name
+                .toLowerCase()
+                .split(" ")
+                .join("")
+                .indexOf(this.findString.toLowerCase().split(" ").join("")) !==
+                -1 &&
+                el.name !== "") ||
+              (el.codeName
+                .toLowerCase()
+                .split(" ")
+                .join("")
+                .indexOf(this.findString.toLowerCase().split(" ").join("")) !==
+                -1 &&
+                el.codeName !== "")
+            );
+          });
+        } else return specializations;
+      } else return [];
     }
   }
 };

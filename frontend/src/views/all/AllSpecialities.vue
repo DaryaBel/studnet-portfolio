@@ -14,12 +14,11 @@
           v-model="findString"
         ></v-text-field>
         <p v-if="filterItems.length != 0">
-          Найдено {{ filterItems.length }}
           <span
             v-if="
               filterItems.length % 10 == 1 && filterItems.length % 100 != 11
             "
-            >строка</span
+            >Найдена {{ filterItems.length }} строка</span
           >
           <span
             v-if="
@@ -29,17 +28,16 @@
               filterItems.length % 100 != 13 &&
               filterItems.length % 100 != 14
             "
-            >строки</span
+            >Найдено {{ filterItems.length }} строки</span
           >
           <span
             v-if="
-              filterItems.length % 10 >= 5 &&
-              filterItems.length % 10 <= 9 &&
-              filterItems.length % 10 == 0 &&
-              filterItems.length % 100 >= 10 &&
-              filterItems.length % 100 <= 20
+              (filterItems.length % 10 >= 5 && filterItems.length % 10 <= 9) ||
+              (filterItems.length % 100 >= 10 &&
+                filterItems.length % 100 <= 20) ||
+              filterItems.length % 10 == 0
             "
-            >строк</span
+            >Найдено {{ filterItems.length }} строк</span
           >
           с результатами
         </p>
@@ -66,14 +64,21 @@
                 v-model="fullCodename"
               ></v-text-field>
               <v-select
-                :items="arrayFaculties()"
+                :items="allFaculties"
+                item-text="name"
+                item-value="id"
                 label="Факультет"
                 dense
                 required
                 v-model="fullFaculties"
                 color="light-blue"
               ></v-select>
-              <v-btn color="light-blue" class="white--text" @click="onAdd()">
+              <v-btn
+                :disabled="!addBtn"
+                color="light-blue"
+                class="white--text"
+                @click="onAdd()"
+              >
                 Добавить
               </v-btn>
             </v-expansion-panel-content>
@@ -106,6 +111,21 @@
             <span v-if="flag != specialization.id">
               {{ specialization.codeName }}</span
             >
+            <br v-if="flag != specialization.id" />
+            <span class="light-blue--text" v-if="flag != specialization.id">
+              Факультет: {{ specialization.faculty.name }}</span
+            >
+            <v-select
+              v-if="flag == specialization.id"
+              :items="allFaculties"
+              item-text="name"
+              item-value="id"
+              label="Факультет"
+              dense
+              required
+              v-model="formFaculty"
+              color="light-blue"
+            ></v-select>
             <v-text-field
               v-if="flag == specialization.id"
               light="light"
@@ -150,8 +170,23 @@
 </template>
 
 <script>
+import {
+  SHORTFACULTIES,
+  SPECIALIZATIONS,
+  CREATESPECIALIZATION,
+  UPDATESPECIALIZATION,
+  DELETESPECIALIZATION
+} from "@/graphql/queries.js";
 export default {
   name: "AllSpecialities",
+  apollo: {
+    allFaculties: {
+      query: SHORTFACULTIES
+    },
+    allSpecializations: {
+      query: SPECIALIZATIONS
+    }
+  },
   data() {
     return {
       flag: 0,
@@ -162,114 +197,121 @@ export default {
       findString: "",
       formName: "",
       formFaculty: "",
-      formCodename: "",
-      allFaculties: [
-        { id: 1, name: "Факультет философии" },
-        { id: 2, name: "Факультет информационных технологий" }
-      ],
-      specializations: [
-        {
-          id: 1,
-          name: "Информатика и вычислительная техника",
-          codeName: "09.03.01",
-          faculty: 1
-        },
-        {
-          id: 2,
-          name: "Прикладная математика и информатика",
-          codeName: "01.03.02",
-          faculty: 1
-        },
-        {
-          id: 3,
-          name: "Информационная безопасность автоматизированных систем",
-          codeName: "10.05.03",
-          faculty: 2
-        }
-      ]
+      formCodename: ""
     };
   },
   methods: {
+    // Исправлено: добавление
     onAdd() {
-      let obj = {
-        id: 6,
-        name: this.fullName,
-        faculty: this.findFacultyByName(this.fullFaculties),
-        codeName: this.fullCodename
-      };
-      this.specializations.push(obj);
-      this.fullCodename = "";
-      this.fullFaculties = "";
-      this.fullName = "";
+      this.$apollo
+        .mutate({
+          mutation: CREATESPECIALIZATION,
+          variables: {
+            name: this.fullName,
+            faculty: this.fullFaculties,
+            codeName: this.fullCodename
+          }
+        })
+        .then(() => {
+          this.$apollo.queries.allSpecializations.refresh();
+          this.$apollo.queries.allSpecializations.refetch();
+          this.fullCodename = "";
+          this.fullFaculties = "";
+          this.fullName = "";
+        })
+        .catch(error => {
+          console.error(error);
+        });
     },
-    arrayFaculties() {
-      let arr = [];
-      this.allFaculties.forEach(el => {
-        arr.push(el.name);
-      });
-      return arr;
-    },
+    // Исправлено: удаление
     onDelete(id) {
-      let index = this.specializations.findIndex(el => {
-        return el.id == id;
-      });
-      this.specializations.splice(index, 1);
+      this.flag = 0;
+      this.$apollo
+        .mutate({
+          mutation: DELETESPECIALIZATION,
+          variables: {
+            specializationId: id
+          }
+        })
+        .then(() => {
+          this.$apollo.queries.allSpecializations.refresh();
+          this.$apollo.queries.allSpecializations.refetch();
+        })
+        .catch(error => {
+          console.error(error);
+        });
     },
+    // Исправлено: обновление
     onEdit(specialization) {
       if (this.flag == 0) {
         this.flag = specialization.id;
         this.formCodename = specialization.codeName;
-        this.formFaculty = this.findFaculty(specialization.faculty);
+        this.formFaculty = specialization.faculty;
         this.formName = specialization.name;
       } else {
         this.flag = 0;
-        let index = this.specializations.findIndex(el => {
-          return el.id == specialization.id;
-        });
-        this.specializations[index].faculty = this.findFacultyByName(
-          this.formFaculty
-        );
-        this.specializations[index].codeName = this.formCodename;
-        this.specializations[index].name = this.formName;
+        let faculty;
+        if (this.formFaculty.id == undefined) {
+          faculty = this.formFaculty;
+        } else faculty = this.formFaculty.id;
+        this.$apollo
+          .mutate({
+            mutation: UPDATESPECIALIZATION,
+            variables: {
+              codeName: this.formCodename,
+              name: this.formName,
+              faculty: faculty,
+              specializationId: specialization.id
+            }
+          })
+          .then(() => {
+            this.$apollo.queries.allSpecializations.refresh();
+            this.$apollo.queries.allSpecializations.refetch();
+          })
+          .catch(error => {
+            console.error(error);
+          });
       }
-    },
-    findFaculty(id) {
-      let obj = this.allFaculties.find(el => {
-        return el.id == id;
-      });
-      return obj.name;
-    },
-    findFacultyByName(name) {
-      let obj = this.allFaculties.find(el => {
-        return el.name == name;
-      });
-      return obj.id;
     }
   },
   computed: {
+    addBtn() {
+      if (
+        this.fullName != "" &&
+        this.fullFaculties != "" &&
+        this.fullCodename != ""
+      )
+        return true;
+      else return false;
+    },
     filterItems() {
-      if (this.findString !== "") {
-        return this.specializations.filter(el => {
-          return (
-            (el.name
-              .toLowerCase()
-              .split(" ")
-              .join("")
-              .indexOf(this.findString.toLowerCase().split(" ").join("")) !==
-              -1 &&
-              el.name !== "") ||
-            (el.codeName
-              .toLowerCase()
-              .split(" ")
-              .join("")
-              .indexOf(this.findString.toLowerCase().split(" ").join("")) !==
-              -1 &&
-              el.codeName !== "")
-          );
-        });
-      } else {
-        return this.specializations;
-      }
+      if (
+        this.allSpecializations != null ||
+        this.allSpecializations != undefined
+      ) {
+        if (this.findString !== "") {
+          return this.allSpecializations.filter(el => {
+            return (
+              (el.name
+                .toLowerCase()
+                .split(" ")
+                .join("")
+                .indexOf(this.findString.toLowerCase().split(" ").join("")) !==
+                -1 &&
+                el.name !== "") ||
+              (el.codeName
+                .toLowerCase()
+                .split(" ")
+                .join("")
+                .indexOf(this.findString.toLowerCase().split(" ").join("")) !==
+                -1 &&
+                el.codeName !== "")
+            );
+          });
+        } else {
+          return this.allSpecializations;
+        }
+      } else return [];
     }
   }
 };

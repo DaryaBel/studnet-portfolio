@@ -14,12 +14,11 @@
           v-model="findString"
         ></v-text-field>
         <p v-if="filterItems.length != 0">
-          Найдено {{ filterItems.length }}
           <span
             v-if="
               filterItems.length % 10 == 1 && filterItems.length % 100 != 11
             "
-            >строка</span
+            >Найдена {{ filterItems.length }} строка</span
           >
           <span
             v-if="
@@ -29,17 +28,16 @@
               filterItems.length % 100 != 13 &&
               filterItems.length % 100 != 14
             "
-            >строки</span
+            >Найдено {{ filterItems.length }} строки</span
           >
           <span
             v-if="
-              filterItems.length % 10 >= 5 &&
-              filterItems.length % 10 <= 9 &&
-              filterItems.length % 10 == 0 &&
-              filterItems.length % 100 >= 10 &&
-              filterItems.length % 100 <= 20
+              (filterItems.length % 10 >= 5 && filterItems.length % 10 <= 9) ||
+              (filterItems.length % 100 >= 10 &&
+                filterItems.length % 100 <= 20) ||
+              filterItems.length % 10 == 0
             "
-            >строк</span
+            >Найдено {{ filterItems.length }} строк</span
           >
           с результатами
         </p>
@@ -77,7 +75,12 @@
                 label="Описание"
                 v-model="fullDescription"
               ></v-textarea>
-              <v-btn color="light-blue" class="white--text" @click="onAdd()">
+              <v-btn
+                :disabled="!addBtn"
+                color="light-blue"
+                class="white--text"
+                @click="onAdd()"
+              >
                 Добавить
               </v-btn>
             </v-expansion-panel-content>
@@ -161,8 +164,19 @@
 </template>
 
 <script>
+import {
+  UNIVERSITIES,
+  DELETEUNIVERSITY,
+  CREATEUNIVERSITY,
+  UPDATEUNIVERSITY
+} from "@/graphql/queries.js";
 export default {
   name: "AllUniversities",
+  apollo: {
+    allUniversities: {
+      query: UNIVERSITIES
+    }
+  },
   data() {
     return {
       flag: 0,
@@ -174,75 +188,92 @@ export default {
       findString: "",
       formFullname: "",
       formLocation: "",
-      formDescription: "",
-      universities: [
-        {
-          id: 1,
-          fullname: "Московский политехнический университет",
-          shortname: "Московский политех",
-          location: "Москва",
-          description:
-            "Московский политехнический университет является крупнейшей образовательной организацией, готовящей квалифицированных специалистов для производства."
-        },
-        {
-          id: 2,
-          fullname: "Московский государственный университет",
-          shortname: "МГУ",
-          location: "Москва",
-          description:
-            "Моско́вский госуда́рственный университе́т и́мени М. В. Ломоно́сова — один из старейших и крупнейших классических университетов России, один из центров отечественной науки и культуры, расположенный в Москве."
-        }
-      ]
+      formDescription: ""
     };
   },
   components: {},
   computed: {
+    addBtn() {
+      if (
+        this.fullFullname != "" &&
+        this.fullShortname != "" &&
+        this.fullDescription != "" &&
+        this.fullLocation != ""
+      )
+        return true;
+      else return false;
+    },
     filterItems() {
-      if (this.findString !== "") {
-        return this.universities.filter(el => {
-          return (
-            (el.fullname
-              .toLowerCase()
-              .split(" ")
-              .join("")
-              .indexOf(this.findString.toLowerCase().split(" ").join("")) !==
-              -1 &&
-              el.fullname !== "") ||
-            (el.shortname
-              .toLowerCase()
-              .split(" ")
-              .join("")
-              .indexOf(this.findString.toLowerCase().split(" ").join("")) !==
-              -1 &&
-              el.shortname !== "")
-          );
-        });
-      } else {
-        return this.universities;
-      }
+      if (this.allUniversities != null || this.allUniversities != undefined) {
+        if (this.findString !== "") {
+          return this.allUniversities.filter(el => {
+            return (
+              (el.fullname
+                .toLowerCase()
+                .split(" ")
+                .join("")
+                .indexOf(this.findString.toLowerCase().split(" ").join("")) !==
+                -1 &&
+                el.fullname !== "") ||
+              (el.shortname
+                .toLowerCase()
+                .split(" ")
+                .join("")
+                .indexOf(this.findString.toLowerCase().split(" ").join("")) !==
+                -1 &&
+                el.shortname !== "")
+            );
+          });
+        } else {
+          return this.allUniversities;
+        }
+      } else return [];
     }
   },
   methods: {
+    // Исправлено: добавление
     onAdd() {
-      let obj = {
-        id: 5,
-        fullname: this.fullFullname,
-        shortname: this.fullShortname,
-        location: this.fullLocation,
-        description: this.fullDescription
-      };
-      this.universities.push(obj);
-      this.fullLocation = "";
-      this.fullDescription = "";
-      this.fullFullname = "";
-      this.fullShortname = "";
+      this.$apollo
+        .mutate({
+          mutation: CREATEUNIVERSITY,
+          variables: {
+            fullname: this.fullFullname,
+            shortname: this.fullShortname,
+            location: this.fullLocation,
+            description: this.fullDescription
+          }
+        })
+        .then(() => {
+          this.$apollo.queries.allUniversities.refresh();
+          this.$apollo.queries.allUniversities.refetch();
+          this.fullLocation = "";
+          this.fullDescription = "";
+          this.fullFullname = "";
+          this.fullShortname = "";
+        })
+        .catch(error => {
+          console.error(error);
+        });
     },
+    // Исправлено: удаление
     onDelete(id) {
-      let index = this.universities.findIndex(el => {
-        return el.id == id;
-      });
-      this.universities.splice(index, 1);
+      this.flag = 0;
+      this.$apollo
+        .mutate({
+          mutation: DELETEUNIVERSITY,
+          variables: {
+            universityId: id
+          }
+        })
+        .then(() => {
+          this.$apollo.queries.allUniversities.refresh();
+          this.$apollo.queries.allUniversities.refetch();
+        })
+        .catch(error => {
+          console.error(error);
+        });
     },
+    // Исправлено: обновление
     onEdit(university) {
       if (this.flag == 0) {
         this.flag = university.id;
@@ -251,12 +282,23 @@ export default {
         this.formLocation = university.location;
       } else {
         this.flag = 0;
-        let index = this.universities.findIndex(el => {
-          return el.id == university.id;
-        });
-        this.universities[index].description = this.formDescription;
-        this.universities[index].location = this.formLocation;
-        this.universities[index].fullname = this.formFullname;
+        this.$apollo
+          .mutate({
+            mutation: UPDATEUNIVERSITY,
+            variables: {
+              description: this.formDescription,
+              fullname: this.formFullname,
+              location: this.formLocation,
+              universityId: university.id
+            }
+          })
+          .then(() => {
+            this.$apollo.queries.allUniversities.refresh();
+            this.$apollo.queries.allUniversities.refetch();
+          })
+          .catch(error => {
+            console.error(error);
+          });
       }
     }
   }

@@ -14,12 +14,11 @@
           v-model="findString"
         ></v-text-field>
         <p v-if="filterItems.length != 0">
-          Найдено {{ filterItems.length }}
           <span
             v-if="
               filterItems.length % 10 == 1 && filterItems.length % 100 != 11
             "
-            >строка</span
+            >Найдена {{ filterItems.length }} строка</span
           >
           <span
             v-if="
@@ -29,17 +28,16 @@
               filterItems.length % 100 != 13 &&
               filterItems.length % 100 != 14
             "
-            >строки</span
+            >Найдено {{ filterItems.length }} строки</span
           >
           <span
             v-if="
-              filterItems.length % 10 >= 5 &&
-              filterItems.length % 10 <= 9 &&
-              filterItems.length % 10 == 0 &&
-              filterItems.length % 100 >= 10 &&
-              filterItems.length % 100 <= 20
+              (filterItems.length % 10 >= 5 && filterItems.length % 10 <= 9) ||
+              (filterItems.length % 100 >= 10 &&
+                filterItems.length % 100 <= 20) ||
+              filterItems.length % 10 == 0
             "
-            >строк</span
+            >Найдено {{ filterItems.length }} строк</span
           >
           с результатами
         </p>
@@ -75,46 +73,22 @@
 </template>
 
 <script>
+import { STUDENTSOFGROUP } from "@/graphql/queries.js";
 export default {
   name: "Students",
+  apollo: {
+    group: {
+      query: STUDENTSOFGROUP,
+      variables() {
+        return {
+          groupId: this.$route.params.id
+        };
+      }
+    }
+  },
   data() {
     return {
-      findString: "",
-      students: [
-        {
-          id: 1,
-          fullname: "Беляева Дарья Владиславовна",
-          birthdate: `${new Date("2000-11-24").getDate()}.${
-            new Date("2000-11-24").getMonth() + 1
-          }.${new Date("2000-11-24").getFullYear()}
-         `,
-          group: 1,
-          email: "d.belyaeva1@gmail.com",
-          budgetary: true
-        },
-        {
-          id: 2,
-          fullname: "Глазков Никита Олегович",
-          birthdate: `${new Date("2000-10-31").getDate()}.${
-            new Date("2000-10-31").getMonth() + 1
-          }.${new Date("2000-10-31").getFullYear()}
-         `,
-          group: 1,
-          email: "zitrnik@gmail.com",
-          budgetary: true
-        },
-        {
-          id: 3,
-          fullname: "Колезнева Надежда Валентиновна",
-          birthdate: `${new Date("2000-09-20").getDate()}.${
-            new Date("2000-09-20").getMonth() + 1
-          }.${new Date("2000-09-20").getFullYear()}
-         `,
-          group: 2,
-          email: "nkolezneva@gmail.com",
-          budgetary: false
-        }
-      ]
+      findString: ""
     };
   },
   methods: {
@@ -124,24 +98,21 @@ export default {
   },
   computed: {
     filterItems() {
-      if (this.findString !== "") {
-        return this.students.filter(el => {
-          return (
-            el.fullname
-              .toLowerCase()
-              .split(" ")
-              .join("")
-              .indexOf(this.findString.toLowerCase().split(" ").join("")) !==
-              -1 &&
-            el.fullname !== "" &&
-            el.group == this.$route.params.id
-          );
-        });
-      } else {
-        return this.students.filter(el => {
-          return el.group == this.$route.params.id;
-        });
-      }
+      if (this.group != null || this.group != undefined) {
+        let students = this.group.studentsOfGroup;
+        if (this.findString !== "") {
+          return students.filter(el => {
+            return (
+              el.fullname
+                .toLowerCase()
+                .split(" ")
+                .join("")
+                .indexOf(this.findString.toLowerCase().split(" ").join("")) !==
+                -1 && el.fullname !== ""
+            );
+          });
+        } else return students;
+      } else return [];
     }
   }
 };

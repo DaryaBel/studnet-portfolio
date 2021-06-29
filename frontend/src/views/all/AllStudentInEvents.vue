@@ -7,35 +7,44 @@
         </h2>
       </v-col>
     </v-row>
-    <v-row>
+    <v-row
+      v-if="allStudentsInEvents == null || allStudentsInEvents == undefined"
+    >
       <v-col>
-        <p v-if="studentInEvents.length != 0">
-          Найдено {{ studentInEvents.length }}
+        <p>Подождите...</p>
+      </v-col>
+    </v-row>
+    <v-row
+      v-if="allStudentsInEvents != null && allStudentsInEvents != undefined"
+    >
+      <v-col>
+        <p v-if="allStudentsInEvents.length != 0">
           <span
             v-if="
-              studentInEvents.length % 10 == 1 && studentInEvents.length % 100 != 11
+              allStudentsInEvents.length % 10 == 1 &&
+              allStudentsInEvents.length % 100 != 11
             "
-            >строка</span
+            >Найдена {{ allStudentsInEvents.length }} строка</span
           >
           <span
             v-if="
-              studentInEvents.length % 10 >= 2 &&
-              studentInEvents.length % 10 <= 4 &&
-              studentInEvents.length % 100 != 12 &&
-              studentInEvents.length % 100 != 13 &&
-              studentInEvents.length % 100 != 14
+              allStudentsInEvents.length % 10 >= 2 &&
+              allStudentsInEvents.length % 10 <= 4 &&
+              allStudentsInEvents.length % 100 != 12 &&
+              allStudentsInEvents.length % 100 != 13 &&
+              allStudentsInEvents.length % 100 != 14
             "
-            >строки</span
+            >Найдено {{ allStudentsInEvents.length }} строки</span
           >
           <span
             v-if="
-              studentInEvents.length % 10 >= 5 &&
-              studentInEvents.length % 10 <= 9 &&
-              studentInEvents.length % 10 == 0 &&
-              studentInEvents.length % 100 >= 10 &&
-              studentInEvents.length % 100 <= 20
+              (allStudentsInEvents.length % 10 >= 5 &&
+                allStudentsInEvents.length % 10 <= 9) ||
+              (allStudentsInEvents.length % 100 >= 10 &&
+                allStudentsInEvents.length % 100 <= 20) ||
+              allStudentsInEvents.length % 10 == 0
             "
-            >строк</span
+            >Найдено {{ allStudentsInEvents.length }} строк</span
           >
           с результатами
         </p>
@@ -50,7 +59,9 @@
             </v-expansion-panel-header>
             <v-expansion-panel-content>
               <v-select
-                :items="arrayEvents()"
+                :items="allEvents"
+                item-text="name"
+                item-value="id"
                 label="Мероприятие"
                 dense
                 required
@@ -59,7 +70,9 @@
               ></v-select>
               <v-select
                 v-model="fullStudent"
-                :items="arrayStudents()"
+                :items="allStudents"
+                item-text="fullname"
+                item-value="id"
                 label="Студент"
                 color="light-blue"
                 required
@@ -72,7 +85,12 @@
                 color="light-blue"
                 v-model="fullRole"
               ></v-select>
-              <v-btn color="light-blue" class="white--text" @click="onAdd()">
+              <v-btn
+                :disabled="!addBtn"
+                color="light-blue"
+                class="white--text"
+                @click="onAdd()"
+              >
                 Добавить
               </v-btn>
             </v-expansion-panel-content>
@@ -81,33 +99,42 @@
       </v-col>
     </v-row>
 
-    <v-row>
-      <v-col v-if="studentInEvents.length != 0">
+    <v-row
+      v-if="allStudentsInEvents != null && allStudentsInEvents != undefined"
+    >
+      <v-col v-if="allStudentsInEvents.length != 0">
         <v-card
           class="mb-5"
-          v-for="item in studentInEvents"
+          v-for="item in allStudentsInEvents"
           :key="item.id"
           elevation="2"
         >
           <v-card-title
-            ><span v-if="flag != item.id"
-              >{{ findStudent(item.student) }}. {{ item.role }} мероприятия "{{
-                findEvent(item.event)
-              }}"</span
-            >
+            ><span v-if="flag != item.id">{{ item.student.fullname }}</span>
             <v-select
               v-if="flag == item.id"
-              :items="arrayEvents()"
+              :items="allEvents"
+              item-text="name"
+              item-value="id"
               label="Мероприятие"
               dense
               required
               v-model="formEvent"
               color="light-blue"
             ></v-select>
+          </v-card-title>
+          <v-card-subtitle>
+            <span v-if="flag != item.id"
+              >{{ item.role }} мероприятия "{{ item.event.name }}"</span
+            >
+          </v-card-subtitle>
+          <v-card-text>
             <v-select
               v-if="flag == item.id"
               v-model="formStudent"
-              :items="arrayStudents()"
+              :items="allStudents"
+              item-text="fullname"
+              item-value="id"
               label="Студент"
               color="light-blue"
               required
@@ -121,7 +148,7 @@
               color="light-blue"
               v-model="formRole"
             ></v-select>
-          </v-card-title>
+          </v-card-text>
           <v-card-actions>
             <v-btn
               v-if="flag != item.id"
@@ -146,7 +173,7 @@
           </v-card-actions>
         </v-card>
       </v-col>
-      <v-col v-if="studentInEvents.length == 0">
+      <v-col v-if="allStudentsInEvents.length == 0">
         <p class="text-center title">Не найдено</p>
       </v-col>
     </v-row>
@@ -154,8 +181,28 @@
 </template>
 
 <script>
+import {
+  SHORTEVENTS,
+  STUDENTSINEVENTS,
+  SHORTSTUDENTS,
+  UPDATESTUDENTINEVENT,
+  CREATESTUDENTINEVENT,
+  DELETESTUDENTINEVENT
+} from "@/graphql/queries.js";
+
 export default {
   name: "AllStudentInEvents",
+  apollo: {
+    allEvents: {
+      query: SHORTEVENTS
+    },
+    allStudentsInEvents: {
+      query: STUDENTSINEVENTS
+    },
+    allStudents: {
+      query: SHORTSTUDENTS
+    }
+  },
   data() {
     return {
       flag: 0,
@@ -166,116 +213,92 @@ export default {
       formRole: "",
       formEvent: "",
       formStudent: "",
-      roles: ["Участник", "Волонтер", "Призер", "Победитель"],
-      allEvents: [
-        { id: 1, name: "Мероприятие 1" },
-        { id: 2, name: "Мероприятие 2" },
-        { id: 3, name: "Мероприятие 3" }
-      ],
-      allStudents: [
-        { id: 1, fullname: "Иванова Екатерина Петровна" },
-        { id: 2, fullname: "Емельянов Тихон Ярославович" },
-        { id: 3, fullname: "Терентьев Эрик Михаилович" },
-        { id: 4, fullname: "Лихачёва Злата Михаиловна" },
-        { id: 5, fullname: "Попова Малика Авксентьевна" },
-        { id: 6, fullname: "Васильева Нонна Ивановна" },
-        { id: 7, fullname: "Кузнецова Наталья Геннадьевна" },
-        { id: 8, fullname: "Фомичёва Эдита Мэлоровна" },
-        { id: 9, fullname: "Рыбакова Кармелитта Михайловна" }
-      ],
-      studentInEvents: [
-        {
-          id: 1,
-          student: 1,
-          event: 1,
-          role: "Победитель"
-        },
-        {
-          id: 2,
-          student: 2,
-          event: 2,
-          role: "Участник"
-        }
-      ]
+      roles: ["Участник", "Волонтер", "Призер", "Победитель"]
     };
   },
+  computed: {
+    addBtn() {
+      if (this.fullRole != "" && this.fullEvent != "" && this.fullStudent != "")
+        return true;
+      else return false;
+    }
+  },
   methods: {
+    // Исправлено: добавление
     onAdd() {
-      let obj = {
-        id: 6,
-        student: this.findStudentByName(this.fullStudent),
-        event: this.findEventByName(this.fullEvent),
-        role: this.fullRole
-      };
-      this.studentInEvents.push(obj);
-      this.fullStudent = "";
-      this.fullEvent = "";
-      this.fullRole = "";
+      this.$apollo
+        .mutate({
+          mutation: CREATESTUDENTINEVENT,
+          variables: {
+            student: this.fullStudent,
+            event: this.fullEvent,
+            role: this.fullRole
+          }
+        })
+        .then(() => {
+          this.$apollo.queries.allStudentsInEvents.refresh();
+          this.$apollo.queries.allStudentsInEvents.refetch();
+          this.fullStudent = "";
+          this.fullEvent = "";
+          this.fullRole = "";
+        })
+        .catch(error => {
+          console.error(error);
+        });
     },
-
+    // Исправлено: удаление
     onDelete(id) {
-      let index = this.studentInEvents.findIndex(el => {
-        return el.id == id;
-      });
-      this.studentInEvents.splice(index, 1);
+      this.flag = 0;
+      this.$apollo
+        .mutate({
+          mutation: DELETESTUDENTINEVENT,
+          variables: {
+            studentInEventId: id
+          }
+        })
+        .then(() => {
+          this.$apollo.queries.allStudentsInEvents.refresh();
+          this.$apollo.queries.allStudentsInEvents.refetch();
+        })
+        .catch(error => {
+          console.error(error);
+        });
     },
-    arrayEvents() {
-      let arr = [];
-      this.allEvents.forEach(el => {
-        arr.push(el.name);
-      });
-      return arr;
-    },
-    arrayStudents() {
-      let arr = [];
-      this.allStudents.forEach(el => {
-        arr.push(el.fullname);
-      });
-      return arr;
-    },
+    // Исправлено: обновление
     onEdit(studentInEvent) {
       if (this.flag == 0) {
         this.flag = studentInEvent.id;
-        this.formStudent = this.findStudent(studentInEvent.student);
-        this.formEvent = this.findEvent(studentInEvent.event);
+        this.formStudent = studentInEvent.student;
+        this.formEvent = studentInEvent.event;
         this.formRole = studentInEvent.role;
       } else {
         this.flag = 0;
-        let index = this.studentInEvents.findIndex(el => {
-          return el.id == studentInEvent.id;
-        });
-        this.studentInEvents[index].event = this.findEventByName(
-          this.formEvent
-        );
-        this.studentInEvents[index].student = this.findStudentByName(
-          this.formStudent
-        );
-        this.studentInEvents[index].role = this.formRole;
+        let student;
+        if (this.formStudent.id == undefined) {
+          student = this.formStudent;
+        } else student = this.formStudent.id;
+        let event;
+        if (this.formEvent.id == undefined) {
+          event = this.formEvent;
+        } else event = this.formEvent.id;
+        this.$apollo
+          .mutate({
+            mutation: UPDATESTUDENTINEVENT,
+            variables: {
+              event: event,
+              role: this.formRole,
+              student: student,
+              studentInEventId: studentInEvent.id
+            }
+          })
+          .then(() => {
+            this.$apollo.queries.allStudentsInEvents.refresh();
+            this.$apollo.queries.allStudentsInEvents.refetch();
+          })
+          .catch(error => {
+            console.error(error);
+          });
       }
-    },
-    findEvent(id) {
-      let obj = this.allEvents.find(el => {
-        return el.id == id;
-      });
-      return obj.name;
-    },
-    findEventByName(name) {
-      let obj = this.allEvents.find(el => {
-        return el.name == name;
-      });
-      return obj.id;
-    },
-    findStudent(id) {
-      let obj = this.allStudents.find(el => {
-        return el.id == id;
-      });
-      return obj.fullname;
-    },
-    findStudentByName(name) {
-      let obj = this.allStudents.find(el => {
-        return el.fullname == name;
-      });
-      return obj.id;
     }
   }
 };

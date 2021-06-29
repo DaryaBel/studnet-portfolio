@@ -14,12 +14,11 @@
           v-model="findString"
         ></v-text-field>
         <p v-if="filterItems.length != 0">
-          Найдено {{ filterItems.length }}
           <span
             v-if="
               filterItems.length % 10 == 1 && filterItems.length % 100 != 11
             "
-            >строка</span
+            >Найдена {{ filterItems.length }} строка</span
           >
           <span
             v-if="
@@ -29,23 +28,22 @@
               filterItems.length % 100 != 13 &&
               filterItems.length % 100 != 14
             "
-            >строки</span
+            >Найдено {{ filterItems.length }} строки</span
           >
           <span
             v-if="
-              filterItems.length % 10 >= 5 &&
-              filterItems.length % 10 <= 9 &&
-              filterItems.length % 10 == 0 &&
-              filterItems.length % 100 >= 10 &&
-              filterItems.length % 100 <= 20
+              (filterItems.length % 10 >= 5 && filterItems.length % 10 <= 9) ||
+              (filterItems.length % 100 >= 10 &&
+                filterItems.length % 100 <= 20) ||
+              filterItems.length % 10 == 0
             "
-            >строк</span
+            >Найдено {{ filterItems.length }} строк</span
           >
           с результатами
         </p>
       </v-col>
     </v-row>
-    
+
     <v-row>
       <v-col v-if="filterItems.length != 0">
         <v-card
@@ -72,64 +70,51 @@
 </template>
 
 <script>
+import { UNIVERSITIES } from "@/graphql/queries.js";
 export default {
   name: "Universities",
+  apollo: {
+    allUniversities: {
+      query: UNIVERSITIES
+    }
+  },
   data() {
     return {
-      breadcrumbs: "place for breadcrumbs",
-      findString: "",
-      universities: [
-        {
-          id: 1,
-          fullname: "Московский политехнический университет",
-          shortname: "Московский политех",
-          location: "Москва",
-          description:
-            "Московский политехнический университет является крупнейшей образовательной организацией, готовящей квалифицированных специалистов для производства."
-        },
-        {
-          id: 2,
-          fullname: "Московский государственный университет",
-          shortname: "МГУ",
-          location: "Москва",
-          description:
-            "Моско́вский госуда́рственный университе́т и́мени М. В. Ломоно́сова — один из старейших и крупнейших классических университетов России, один из центров отечественной науки и культуры, расположенный в Москве."
-        }
-      ]
+      findString: ""
     };
   },
-  components: {
-  },
+  components: {},
   computed: {
     filterItems() {
-      if (this.findString !== "") {
-        return this.universities.filter(el => {
-          return (
-            (el.fullname
-              .toLowerCase()
-              .split(" ")
-              .join("")
-              .indexOf(this.findString.toLowerCase().split(" ").join("")) !==
-              -1 &&
-              el.fullname !== "") ||
-            (el.shortname
-              .toLowerCase()
-              .split(" ")
-              .join("")
-              .indexOf(this.findString.toLowerCase().split(" ").join("")) !==
-              -1 &&
-              el.shortname !== "")
-          );
-        });
-      } else {
-        return this.universities;
-      }
+      if (this.allUniversities != null || this.allUniversities != undefined) {
+        if (this.findString !== "") {
+          return this.allUniversities.filter(el => {
+            return (
+              (el.fullname
+                .toLowerCase()
+                .split(" ")
+                .join("")
+                .indexOf(this.findString.toLowerCase().split(" ").join("")) !==
+                -1 &&
+                el.fullname !== "") ||
+              (el.shortname
+                .toLowerCase()
+                .split(" ")
+                .join("")
+                .indexOf(this.findString.toLowerCase().split(" ").join("")) !==
+                -1 &&
+                el.shortname !== "")
+            );
+          });
+        } else {
+          return this.allUniversities;
+        }
+      } else return [];
     }
   },
   methods: {
     onLink(university) {
       this.$router.push({ name: "Faculties", params: { id: university.id } });
-
     }
   }
 };

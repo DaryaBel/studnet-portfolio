@@ -14,12 +14,11 @@
           v-model="findString"
         ></v-text-field>
         <p v-if="filterItems.length != 0">
-          Найдено {{ filterItems.length }}
           <span
             v-if="
               filterItems.length % 10 == 1 && filterItems.length % 100 != 11
             "
-            >строка</span
+            >Найдена {{ filterItems.length }} строка</span
           >
           <span
             v-if="
@@ -29,17 +28,16 @@
               filterItems.length % 100 != 13 &&
               filterItems.length % 100 != 14
             "
-            >строки</span
+            >Найдено {{ filterItems.length }} строки</span
           >
           <span
             v-if="
-              filterItems.length % 10 >= 5 &&
-              filterItems.length % 10 <= 9 &&
-              filterItems.length % 10 == 0 &&
-              filterItems.length % 100 >= 10 &&
-              filterItems.length % 100 <= 20
+              (filterItems.length % 10 >= 5 && filterItems.length % 10 <= 9) ||
+              (filterItems.length % 100 >= 10 &&
+                filterItems.length % 100 <= 20) ||
+              filterItems.length % 10 == 0
             "
-            >строк</span
+            >Найдено {{ filterItems.length }} строк</span
           >
           с результатами
         </p>
@@ -94,7 +92,12 @@
                 label="Описание"
                 v-model="fullDescription"
               ></v-textarea>
-              <v-btn color="light-blue" class="white--text" @click="onAdd()">
+              <v-btn
+                :disabled="!addBtn"
+                color="light-blue"
+                class="white--text"
+                @click="onAdd()"
+              >
                 Добавить
               </v-btn>
             </v-expansion-panel-content>
@@ -123,7 +126,7 @@
           </v-card-title>
           <v-card-subtitle>
             <span v-if="flag != event.id"
-              >{{ event.location }}. {{ event.date }}</span
+              >{{ event.location }}. {{ formatDate(event.date) }}</span
             >
             <v-text-field
               v-if="flag == event.id"
@@ -201,72 +204,36 @@
 </template>
 
 <script>
+import {
+  EVENTS,
+  DELETEEVENT,
+  CREATEEVENT,
+  UPDATEEVENT
+} from "@/graphql/queries.js";
+
 export default {
   name: "AllEvents",
+  apollo: {
+    allEvents: {
+      query: EVENTS
+    }
+  },
   data() {
     return {
       flag: 0,
       fullName: "",
       fullLocation: "",
       fullDescription: "",
-      fullDate: "",
 
       findString: "",
       formName: "",
       formLocation: "",
       formDescription: "",
-      formDate: "",
 
       date: new Date().toISOString().substr(0, 10),
       date2: new Date().toISOString().substr(0, 10),
       menu1: false,
-      menu2: false,
-      events: [
-        {
-          id: 1,
-          name: "Международный форум молодых ученых «РОЛЬ МОЛОДЫХ УЧЕНЫХ В РАЗВИТИИ НАУКИ, ТЕХНИКИ И ИННОВАЦИЙ» посвященный дню независимости Республики Казахстан",
-          location: "Online. Платформа Zoom",
-          description:
-            "7-8 декабря 2020 года в рамках Международного форума молодых ученых «Роль молодых ученых в развитии науки, техники и инноваций» посвященного дню независимости Республики Казахстан проводился международный конкурс научно практических и научно исследовательских проектов.",
-          date: `${new Date("2020-12-07").getDate()}.${
-            new Date("2020-12-07").getMonth() + 1
-          }.${new Date("2020-12-07").getFullYear()}
-         `
-        },
-        {
-          id: 2,
-          name: "III Международный научный Форум профессорско-преподавательского состава и молодых учёных «ЦИФРОВЫЕ ТЕХНОЛОГИИ: НАУКА, ОБРАЗОВАНИЕ, ИННОВАЦИИ»",
-          location: "Online. Платформа Zoom",
-          description:
-            "20 ноября завершился III Международный научный Форум профессорско-преподавательского состава и молодых учёных «ЦИФРОВЫЕ ТЕХНОЛОГИИ: НАУКА, ОБРАЗОВАНИЕ, ИННОВАЦИИ», включивший в себя 12 конференций и научно-методических семинаров, круглых столов и экспертных сессий",
-          date: `${new Date("2020-11-20").getDate()}.${
-            new Date("2020-11-20").getMonth() + 1
-          }.${new Date("2020-11-20").getFullYear()}
-         `
-        },
-        {
-          id: 3,
-          name: "Международный форум молодых ученых «РОЛЬ МОЛОДЫХ УЧЕНЫХ В РАЗВИТИИ НАУКИ, ТЕХНИКИ И ИННОВАЦИЙ» посвященный дню независимости Республики Казахстан",
-          location: "Online. Платформа Zoom",
-          description:
-            "7-8 декабря 2020 года в рамках Международного форума молодых ученых «Роль молодых ученых в развитии науки, техники и инноваций» посвященного дню независимости Республики Казахстан проводился международный конкурс научно практических и научно исследовательских проектов.",
-          date: `${new Date("2020-12-07").getDate()}.${
-            new Date("2020-12-07").getMonth() + 1
-          }.${new Date("2020-12-07").getFullYear()}
-         `
-        },
-        {
-          id: 4,
-          name: "III Международный научный Форум профессорско-преподавательского состава и молодых учёных «ЦИФРОВЫЕ ТЕХНОЛОГИИ: НАУКА, ОБРАЗОВАНИЕ, ИННОВАЦИИ»",
-          location: "Online. Платформа Zoom",
-          description:
-            "20 ноября завершился III Международный научный Форум профессорско-преподавательского состава и молодых учёных «ЦИФРОВЫЕ ТЕХНОЛОГИИ: НАУКА, ОБРАЗОВАНИЕ, ИННОВАЦИИ», включивший в себя 12 конференций и научно-методических семинаров, круглых столов и экспертных сессий",
-          date: `${new Date("2020-11-20").getDate()}.${
-            new Date("2020-11-20").getMonth() + 1
-          }.${new Date("2020-11-20").getFullYear()}
-         `
-        }
-      ]
+      menu2: false
     };
   },
   methods: {
@@ -276,68 +243,106 @@ export default {
       const [year, month, day] = date.split("-");
       return `${day}.${month}.${year}`;
     },
-    parseDate(date) {
-      if (!date) return null;
-
-      const [month, day, year] = date.split("/");
-      return `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
-    },
+    // Исправлено: добавление
     onAdd() {
-      let obj = {
-        id: 6,
-        name: this.fullName,
-        location: this.fullLocation,
-        description: this.fullDescription,
-        date: this.computedDateFormatted
-      };
-      this.events.push(obj);
-      this.fullLocation = "";
-      this.fullDate = "";
-      this.fullDescription = "";
-      this.fullName = "";
+      this.$apollo
+        .mutate({
+          mutation: CREATEEVENT,
+          variables: {
+            name: this.fullName,
+            location: this.fullLocation,
+            description: this.fullDescription,
+            date: this.date
+          }
+        })
+        .then(() => {
+          this.$apollo.queries.allEvents.refresh();
+          this.$apollo.queries.allEvents.refetch();
+          this.fullLocation = "";
+          this.date = new Date().toISOString().substr(0, 10);
+          this.fullDescription = "";
+          this.fullName = "";
+        })
+        .catch(error => {
+          console.error(error);
+        });
     },
-
+    // Исправлено: удаление
     onDelete(id) {
-      let index = this.events.findIndex(el => {
-        return el.id == id;
-      });
-      this.events.splice(index, 1);
+      this.flag = 0;
+      this.$apollo
+        .mutate({
+          mutation: DELETEEVENT,
+          variables: {
+            eventId: id
+          }
+        })
+        .then(() => {
+          this.$apollo.queries.allEvents.refresh();
+          this.$apollo.queries.allEvents.refetch();
+        })
+        .catch(error => {
+          console.error(error);
+        });
     },
+    // Исправлено: обновление
     onEdit(event) {
       if (this.flag == 0) {
         this.flag = event.id;
         this.formDescription = event.description;
         this.formLocation = event.location;
-        this.formDate = event.date;
         this.formName = event.name;
+        this.date2 = new Date(event.date).toISOString().substr(0, 10);
       } else {
         this.flag = 0;
-        let index = this.events.findIndex(el => {
-          return el.id == event.id;
-        });
-        this.events[index].location = this.formLocation;
-        this.events[index].date = this.computedDateFormatted2;
-        this.events[index].description = this.formDescription;
-        this.events[index].name = this.formName;
+        this.$apollo
+          .mutate({
+            mutation: UPDATEEVENT,
+            variables: {
+              eventId: event.id,
+              name: this.formName,
+              description: this.formDescription,
+              date: this.date2,
+              location: this.formLocation
+            }
+          })
+          .then(() => {
+            this.$apollo.queries.allEvents.refresh();
+            this.$apollo.queries.allEvents.refetch();
+          })
+          .catch(error => {
+            console.error(error);
+          });
       }
     }
   },
   computed: {
+    addBtn() {
+      if (
+        this.fullName != "" &&
+        this.fullLocation != "" &&
+        this.fullDescription != ""
+      )
+        return true;
+      else return false;
+    },
     filterItems() {
-      if (this.findString !== "") {
-        return this.events.filter(el => {
-          return (
-            el.name
-              .toLowerCase()
-              .split(" ")
-              .join("")
-              .indexOf(this.findString.toLowerCase().split(" ").join("")) !==
-              -1 && el.name !== ""
-          );
-        });
-      } else {
-        return this.events;
-      }
+      if (this.allEvents != null || this.allEvents != undefined) {
+        if (this.findString !== "") {
+          return this.allEvents.filter(el => {
+            return (
+              el.name
+                .toLowerCase()
+                .split(" ")
+                .join("")
+                .indexOf(this.findString.toLowerCase().split(" ").join("")) !==
+                -1 && el.name !== ""
+            );
+          });
+        } else {
+          return this.allEvents;
+        }
+      } else return [];
     },
     computedDateFormatted() {
       return this.formatDate(this.date);

@@ -18,7 +18,6 @@ import AllStudentInEvents from "../views/all/AllStudentInEvents.vue";
 import AllProjects from "../views/all/AllProjects.vue";
 import AllTeams from "../views/all/AllTeams.vue";
 
-
 Vue.use(VueRouter);
 
 const routes = [
@@ -107,7 +106,7 @@ const routes = [
 const router = new VueRouter({
   mode: "history",
   base: process.env.BASE_URL,
-  routes,
+  routes
 });
 
 export default router;

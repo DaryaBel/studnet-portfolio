@@ -4,6 +4,7 @@ import router from "./router";
 import store from "./store";
 import vuetify from "./plugins/vuetify";
 import Vuelidate from "vuelidate";
+import { createProvider } from "./vue-apollo";
 
 Vue.config.productionTip = false;
 Vue.use(Vuelidate);
@@ -11,5 +12,6 @@ new Vue({
   router,
   store,
   vuetify,
-  render: (h) => h(App),
+  apolloProvider: createProvider(),
+  render: h => h(App)
 }).$mount("#app");

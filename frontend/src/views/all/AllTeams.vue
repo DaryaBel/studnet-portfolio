@@ -14,12 +14,11 @@
           v-model="findString"
         ></v-text-field>
         <p v-if="filterItems.length != 0">
-          Найдено {{ filterItems.length }}
           <span
             v-if="
               filterItems.length % 10 == 1 && filterItems.length % 100 != 11
             "
-            >строка</span
+            >Найдена {{ filterItems.length }} строка</span
           >
           <span
             v-if="
@@ -29,17 +28,16 @@
               filterItems.length % 100 != 13 &&
               filterItems.length % 100 != 14
             "
-            >строки</span
+            >Найдено {{ filterItems.length }} строки</span
           >
           <span
             v-if="
-              filterItems.length % 10 >= 5 &&
-              filterItems.length % 10 <= 9 &&
-              filterItems.length % 10 == 0 &&
-              filterItems.length % 100 >= 10 &&
-              filterItems.length % 100 <= 20
+              (filterItems.length % 10 >= 5 && filterItems.length % 10 <= 9) ||
+              (filterItems.length % 100 >= 10 &&
+                filterItems.length % 100 <= 20) ||
+              filterItems.length % 10 == 0
             "
-            >строк</span
+            >Найдено {{ filterItems.length }} строк</span
           >
           с результатами
         </p>
@@ -60,23 +58,21 @@
                 v-model="fullName"
               ></v-text-field>
               <v-select
-                :items="arrayProject()"
+                :items="allProjects"
+                item-text="name"
+                item-value="id"
                 label="Проект"
                 dense
                 required
                 v-model="fullProject"
                 color="light-blue"
               ></v-select>
-              <v-select
-                v-model="fullStudents"
-                :items="arrayStudents()"
-                :menu-props="{ maxHeight: '400' }"
-                label="Студенты"
-                multiple
+              <v-btn
+                :disabled="!addBtn"
                 color="light-blue"
-                required
-              ></v-select>
-              <v-btn color="light-blue" class="white--text" @click="onAdd()">
+                class="white--text"
+                @click="onAdd()"
+              >
                 Добавить
               </v-btn>
             </v-expansion-panel-content>
@@ -106,11 +102,13 @@
           <v-card-subtitle>
             <span class="light-blue--text" v-if="flag != team.id">
               Проект:
-              {{ findProject(team.project) }}</span
+              {{ team.project.name }}</span
             >
             <v-select
               v-if="flag == team.id"
-              :items="arrayProject()"
+              :items="allProjects"
+              item-text="name"
+              item-value="id"
               label="Проект"
               dense
               required
@@ -150,132 +148,130 @@
 </template>
 
 <script>
+import {
+  TEAMS,
+  SHORTPROJECTS,
+  CREATETEAM,
+  UPDATETEAM,
+  DELETETEAM
+} from "@/graphql/queries.js";
+
 export default {
   name: "AllTeams",
+  apollo: {
+    allTeams: {
+      query: TEAMS
+    },
+    allProjects: {
+      query: SHORTPROJECTS
+    }
+  },
   data() {
     return {
       flag: 0,
       fullName: "",
       fullProject: "",
-      fullStudents: "",
-      // студенты!
 
       findString: "",
       formName: "",
-      formProject: "",
-      allProjects: [
-        { id: 1, name: "Проект 1" },
-        { id: 2, name: "Проект 2" },
-        { id: 3, name: "Проект 3" }
-      ],
-      allStudents: [
-        { id: 1, fullname: "Иванова Екатерина Петровна" },
-        { id: 2, fullname: "Емельянов Тихон Ярославович" },
-        { id: 3, fullname: "Терентьев Эрик Михаилович" },
-        { id: 4, fullname: "Лихачёва Злата Михаиловна" },
-        { id: 5, fullname: "Попова Малика Авксентьевна" },
-        { id: 6, fullname: "Васильева Нонна Ивановна" },
-        { id: 7, fullname: "Кузнецова Наталья Геннадьевна" },
-        { id: 8, fullname: "Фомичёва Эдита Мэлоровна" },
-        { id: 9, fullname: "Рыбакова Кармелитта Михайловна" }
-      ],
-      teams: [
-        { id: 1, name: "Команда 1", project: 1 },
-        { id: 2, name: "Команда 2", project: 1 },
-        { id: 3, name: "Команда 3", project: 1 }
-      ]
+      formProject: ""
     };
   },
   methods: {
+    // Исправлено: добавление
     onAdd() {
-      let obj = {
-        id: 6,
-        name: this.fullName,
-        project: this.findProjectByName(this.fullProject)
-      };
-      this.fullStudents.forEach(el => {
-        let obj2 = {
-          id: 10,
-          student: this.findStudentByName(el),
-          team: 6
-        };
-        console.log(obj2);
-      });
-      this.teams.push(obj);
-      this.fullStudents = "";
-      this.fullProject = "";
-      this.fullName = "";
+      this.$apollo
+        .mutate({
+          mutation: CREATETEAM,
+          variables: {
+            name: this.fullName,
+            project: this.fullProject
+          }
+        })
+        .then(() => {
+          this.$apollo.queries.allTeams.refresh();
+          this.$apollo.queries.allTeams.refetch();
+          this.fullCodename = "";
+          this.fullProject = "";
+          this.fullName = "";
+        })
+        .catch(error => {
+          console.error(error);
+        });
     },
 
+    // Исправлено: удаление
     onDelete(id) {
-      let index = this.teams.findIndex(el => {
-        return el.id == id;
-      });
-      this.teams.splice(index, 1);
+      this.flag = 0;
+      this.$apollo
+        .mutate({
+          mutation: DELETETEAM,
+          variables: {
+            teamId: id
+          }
+        })
+        .then(() => {
+          this.$apollo.queries.allTeams.refresh();
+          this.$apollo.queries.allTeams.refetch();
+        })
+        .catch(error => {
+          console.error(error);
+        });
     },
-    arrayProject() {
-      let arr = [];
-      this.allProjects.forEach(el => {
-        arr.push(el.name);
-      });
-      return arr;
-    },
-    arrayStudents() {
-      let arr = [];
-      this.allStudents.forEach(el => {
-        arr.push(el.fullname);
-      });
-      return arr;
-    },
+
+    // Исправлено: обновление
     onEdit(team) {
       if (this.flag == 0) {
         this.flag = team.id;
-        this.formProject = this.findProject(team.project);
+        this.formProject = team.project;
         this.formName = team.name;
       } else {
         this.flag = 0;
-        let index = this.teams.findIndex(el => {
-          return el.id == team.id;
-        });
-        this.teams[index].project = this.findProjectByName(this.formProject);
-        this.teams[index].name = this.formName;
+        let project;
+        if (this.formProject.id == undefined) {
+          project = this.formProject;
+        } else project = this.formProject.id;
+        this.$apollo
+          .mutate({
+            mutation: UPDATETEAM,
+            variables: {
+              teamId: team.id,
+              name: this.formName,
+              project: project
+            }
+          })
+          .then(() => {
+            this.$apollo.queries.allTeams.refresh();
+            this.$apollo.queries.allTeams.refetch();
+          })
+          .catch(error => {
+            console.error(error);
+          });
       }
-    },
-    findProject(id) {
-      let obj = this.allProjects.find(el => {
-        return el.id == id;
-      });
-      return obj.name;
-    },
-    findProjectByName(name) {
-      let obj = this.allProjects.find(el => {
-        return el.name == name;
-      });
-      return obj.id;
-    },
-    findStudentByName(name) {
-      let obj = this.allStudents.find(el => {
-        return el.fullname == name;
-      });
-      return obj.id;
     }
   },
   computed: {
+    addBtn() {
+      if (this.fullName != "" && this.fullProject != "") return true;
+      else return false;
+    },
     filterItems() {
-      if (this.findString !== "") {
-        return this.teams.filter(el => {
-          return (
-            el.name
-              .toLowerCase()
-              .split(" ")
-              .join("")
-              .indexOf(this.findString.toLowerCase().split(" ").join("")) !==
-              -1 && el.name !== ""
-          );
-        });
-      } else {
-        return this.teams;
-      }
+      if (this.allTeams != null || this.allTeams != undefined) {
+        if (this.findString !== "") {
+          return this.allTeams.filter(el => {
+            return (
+              el.name
+                .toLowerCase()
+                .split(" ")
+                .join("")
+                .indexOf(this.findString.toLowerCase().split(" ").join("")) !==
+                -1 && el.name !== ""
+            );
+          });
+        } else {
+          return this.allTeams;
+        }
+      } else return [];
     }
   }
 };

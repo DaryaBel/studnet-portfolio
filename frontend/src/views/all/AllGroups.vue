@@ -62,12 +62,11 @@
           Аспирантура
         </v-chip>
         <p v-if="filterItems.length != 0">
-          Найдено {{ filterItems.length }}
           <span
             v-if="
               filterItems.length % 10 == 1 && filterItems.length % 100 != 11
             "
-            >строка</span
+            >Найдена {{ filterItems.length }} строка</span
           >
           <span
             v-if="
@@ -77,17 +76,16 @@
               filterItems.length % 100 != 13 &&
               filterItems.length % 100 != 14
             "
-            >строки</span
+            >Найдено {{ filterItems.length }} строки</span
           >
           <span
             v-if="
-              filterItems.length % 10 >= 5 &&
-              filterItems.length % 10 <= 9 &&
-              filterItems.length % 10 == 0 &&
-              filterItems.length % 100 >= 10 &&
-              filterItems.length % 100 <= 20
+              (filterItems.length % 10 >= 5 && filterItems.length % 10 <= 9) ||
+              (filterItems.length % 100 >= 10 &&
+                filterItems.length % 100 <= 20) ||
+              filterItems.length % 10 == 0
             "
-            >строк</span
+            >Найдено {{ filterItems.length }} строк</span
           >
           с результатами
         </p>
@@ -132,14 +130,21 @@
                 color="light-blue"
               ></v-select>
               <v-select
-                :items="arraySpecialities()"
+                :items="allSpecializations"
+                item-text="name"
+                item-value="id"
                 label="Специальность"
                 dense
                 required
                 v-model="fullSpecialities"
                 color="light-blue"
               ></v-select>
-              <v-btn color="light-blue" class="white--text" @click="onAdd()">
+              <v-btn
+                :disabled="!addBtn"
+                color="light-blue"
+                class="white--text"
+                @click="onAdd()"
+              >
                 Добавить
               </v-btn>
             </v-expansion-panel-content>
@@ -211,11 +216,13 @@
             <br v-if="flag != group.id" />
             <span class="light-blue--text" v-if="flag != group.id">
               Специальность:
-              {{ findSpecialization(group.specialization) }}</span
+              {{ group.specialization.name }}</span
             >
             <v-select
               v-if="flag == group.id"
-              :items="arraySpecialities()"
+              :items="allSpecializations"
+              item-text="name"
+              item-value="id"
               label="Специальность"
               dense
               required
@@ -255,8 +262,24 @@
 </template>
 
 <script>
+import {
+  SHORTSPECIALIZATIONS,
+  GROUPS,
+  CREATEGROUP,
+  UPDATEGROUP,
+  DELETEGROUP
+} from "@/graphql/queries.js";
+
 export default {
   name: "AllGroups",
+  apollo: {
+    allGroups: {
+      query: GROUPS
+    },
+    allSpecializations: {
+      query: SHORTSPECIALIZATIONS
+    }
+  },
   data() {
     return {
       fullCourse: "",
@@ -275,127 +298,127 @@ export default {
       formSpecialization: "",
       formForms: "",
       formCodename: "",
-      allSpecialities: [
-        { id: 1, name: "Информатика и вычислительная техника" },
-        { id: 2, name: "Прикладная математика и информатика" }
-      ],
       formsEducation: ["Очная", "Заочная", "Очно-заочная"],
-      degrees: ["Бакалавриат", "Магистратура", "Аспирантура"],
-      groups: [
-        {
-          id: 1,
-          course: 3,
-          codeName: "181-321",
-          formEducation: "Очная",
-          studyDegree: "Бакалавриат",
-          specialization: 1
-        },
-        {
-          id: 2,
-          course: 3,
-          codeName: "181-322",
-          formEducation: "Очная",
-          studyDegree: "Бакалавриат",
-          specialization: 1
-        },
-        {
-          id: 3,
-          course: 1,
-          codeName: "202-321",
-          formEducation: "Заочная",
-          studyDegree: "Магистратура",
-          specialization: 1
-        }
-      ]
+      degrees: ["Бакалавриат", "Магистратура", "Аспирантура"]
     };
   },
   methods: {
+    // Исправлено: добавление
     onAdd() {
-      let obj = {
-        id: 6,
-        course: this.fullCourse,
-        studyDegree: this.fullDegree,
-        formEducation: this.fullForms,
-        specialization: this.findSpecializationByName(this.fullSpecialities),
-        codeName: this.fullCodename
-      };
-      this.groups.push(obj);
-      this.fullCodename = "";
-      this.fullSpecialities = "";
-      this.fullForms = "";
-      this.fullDegree = "";
-      this.fullCourse = "";
+      this.$apollo
+        .mutate({
+          mutation: CREATEGROUP,
+          variables: {
+            course: this.fullCourse,
+            codeName: this.fullCodename,
+            specialization: this.fullSpecialities,
+            formEducation: this.fullForms,
+            studyDegree: this.fullDegree
+          }
+        })
+        .then(() => {
+          this.$apollo.queries.allGroups.refresh();
+          this.$apollo.queries.allGroups.refetch();
+          this.fullCodename = "";
+          this.fullSpecialities = "";
+          this.fullForms = "";
+          this.fullDegree = "";
+          this.fullCourse = "";
+        })
+        .catch(error => {
+          console.error(error);
+        });
     },
-    arraySpecialities() {
-      let arr = [];
-      this.allSpecialities.forEach(el => {
-        arr.push(el.name);
-      });
-      return arr;
-    },
+    // Исправлено: удаление
     onDelete(id) {
-      let index = this.groups.findIndex(el => {
-        return el.id == id;
-      });
-      this.groups.splice(index, 1);
+      this.flag = 0;
+      this.$apollo
+        .mutate({
+          mutation: DELETEGROUP,
+          variables: {
+            groupId: id
+          }
+        })
+        .then(() => {
+          this.$apollo.queries.allGroups.refresh();
+          this.$apollo.queries.allGroups.refetch();
+        })
+        .catch(error => {
+          console.error(error);
+        });
     },
+    // Исправлено: обновление
     onEdit(group) {
       if (this.flag == 0) {
         this.flag = group.id;
         this.formCodename = group.codeName;
-        this.formSpecialization = this.findSpecialization(group.specialization);
+        this.formSpecialization = group.specialization;
         this.formCourse = group.course;
         this.formForms = group.formEducation;
         this.formDegree = group.studyDegree;
       } else {
         this.flag = 0;
-        let index = this.groups.findIndex(el => {
-          return el.id == group.id;
-        });
-        this.groups[index].specialization = this.findSpecializationByName(
-          this.formSpecialization
-        );
-        this.groups[index].codeName = this.formCodename;
-        this.groups[index].course = this.formCourse;
-        this.groups[index].formEducation = this.formForms;
-        this.groups[index].studyDegree = this.formDegree;
+        let specialization;
+        if (this.formSpecialization.id == undefined) {
+          specialization = this.formSpecialization;
+        } else specialization = this.formSpecialization.id;
+        this.$apollo
+          .mutate({
+            mutation: UPDATEGROUP,
+            variables: {
+              codeName: this.formCodename,
+              course: this.formCourse,
+              formEducation: this.formForms,
+              groupId: group.id,
+              specialization: specialization,
+              studyDegree: this.formDegree
+            }
+          })
+          .then(() => {
+            this.$apollo.queries.allGroups.refresh();
+            this.$apollo.queries.allGroups.refetch();
+          })
+          .catch(error => {
+            console.error(error);
+          });
       }
-    },
-    findSpecialization(id) {
-      let obj = this.allSpecialities.find(el => {
-        return el.id == id;
-      });
-      return obj.name;
-    },
-    findSpecializationByName(name) {
-      let obj = this.allSpecialities.find(el => {
-        return el.name == name;
-      });
-      return obj.id;
     }
   },
   computed: {
+    addBtn() {
+      if (
+        this.fullSpecialities != "" &&
+        this.fullForms != "" &&
+        this.fullDegree != "" &&
+        this.fullCourse != "" &&
+        this.fullCodename != ""
+      )
+        return true;
+      else return false;
+    },
     filterItems() {
-      let array = [];
-      let bachelor = this.groups.filter(el => {
-        return (
-          el.studyDegree.toLowerCase().split(" ").join("") == "бакалавриат"
-        );
-      });
-      let master = this.groups.filter(el => {
-        return (
-          el.studyDegree.toLowerCase().split(" ").join("") == "магистратура"
-        );
-      });
-      let phd = this.groups.filter(el => {
-        return (
-          el.studyDegree.toLowerCase().split(" ").join("") == "аспирантура"
-        );
-      });
-      if (this.chip1) array = array.concat(bachelor);
-      if (this.chip2) array = array.concat(master);
-      if (this.chip3) array = array.concat(phd);
-      return array;
+      if (this.allGroups != null || this.allGroups != undefined) {
+        let array = [];
+        let bachelor = this.allGroups.filter(el => {
+          return (
+            el.studyDegree.toLowerCase().split(" ").join("") == "бакалавриат"
+          );
+        });
+        let master = this.allGroups.filter(el => {
+          return (
+            el.studyDegree.toLowerCase().split(" ").join("") == "магистратура"
+          );
+        });
+        let phd = this.allGroups.filter(el => {
+          return (
+            el.studyDegree.toLowerCase().split(" ").join("") == "аспирантура"
+          );
+        });
+        if (this.chip1) array = array.concat(bachelor);
+        if (this.chip2) array = array.concat(master);
+        if (this.chip3) array = array.concat(phd);
+        return array;
+      } else return [];
     }
   }
 };

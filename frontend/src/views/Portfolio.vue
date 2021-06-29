@@ -5,12 +5,39 @@
         <h2 class="font-weight-regular">Портфолио студента</h2>
       </v-col>
     </v-row>
-    <v-row>
+    <v-row
+      v-if="
+        student == undefined ||
+        student == null ||
+        allEvents == undefined ||
+        allEvents == null ||
+        allProjects == undefined ||
+        allProjects == null ||
+        allTeams == undefined ||
+        allTeams == null
+      "
+    >
+      <v-col>
+        <h3>Подождите...</h3>
+      </v-col>
+    </v-row>
+    <v-row
+      v-if="
+        student != undefined &&
+        student != null &&
+        allEvents != undefined &&
+        allEvents != null &&
+        allProjects != undefined &&
+        allProjects != null &&
+        allTeams != undefined &&
+        allTeams != null
+      "
+    >
       <v-col>
         <v-card class="d-print-none mb-2 pb-3" elevation="2">
           <v-card-title>{{ student.fullname }}</v-card-title>
           <v-card-subtitle class="pb-0">{{
-            student.birthdate
+            formatDate(student.birthdate)
           }}</v-card-subtitle>
           <p class="ma-4 mt-0 mb-2 light-blue--text text--darken-3">
             E-mail: {{ student.email }}
@@ -20,13 +47,24 @@
         <v-card class="mb-2 pb-3 my-print" elevation="0">
           <v-card-title>{{ student.fullname }}</v-card-title>
           <v-card-subtitle class="pb-0">{{
-            student.birthdate
+            formatDate(student.birthdate)
           }}</v-card-subtitle>
           <p class="ma-4 mt-0 mb-2">E-mail: {{ student.email }}</p>
         </v-card>
       </v-col>
     </v-row>
-    <v-row>
+    <v-row
+      v-if="
+        student != undefined &&
+        student != null &&
+        allEvents != undefined &&
+        allEvents != null &&
+        allProjects != undefined &&
+        allProjects != null &&
+        allTeams != undefined &&
+        allTeams != null
+      "
+    >
       <v-col>
         <h3 class="mb-3">Участие в проектах</h3>
         <v-radio-group
@@ -51,7 +89,7 @@
         </v-radio-group>
         <v-text-field
           v-if="user && radios1 == 'radio-2'"
-          v-model.trim="$v.form2.project.$model"
+          v-model="projectName"
           color="light-blue"
           label="Название проекта"
           required
@@ -62,7 +100,7 @@
           name="input-7-1"
           color="light-blue"
           label="Описание проекта"
-          v-model="formDescription"
+          v-model="projectDescription"
           class="mb-3 d-print-none"
         ></v-textarea>
         <v-textarea
@@ -70,7 +108,7 @@
           name="input-7-1"
           color="light-blue"
           label="Ссылки проекта"
-          v-model="formLinks"
+          v-model="projectLinks"
           class="mb-3 d-print-none"
         ></v-textarea>
 
@@ -130,10 +168,12 @@
           v-if="user && radios1 == 'radio-1'"
           class="mb-3 d-print-none"
           :items="allProjects"
+          item-text="name"
+          item-value="id"
           label="Проект"
           dense
           required
-          v-model.trim="$v.form2.project.$model"
+          v-model="projectProject"
           color="light-blue"
         ></v-select>
         <v-radio-group
@@ -158,12 +198,20 @@
         </v-radio-group>
         <v-select
           v-if="user && radios1 == 'radio-1' && radios2 == 'radio-3'"
-          :items="allTeams"
+          :items="
+            allTeams.filter(
+              el =>
+                el.project.id == projectProject &&
+                !student.studentsForTeam.find(elem => elem.id == el.id)
+            )
+          "
+          item-text="name"
+          item-value="id"
           label="Команда"
           dense
           required
           class="d-print-none"
-          v-model.trim="$v.form2.team.$model"
+          v-model="projectTeam"
           color="light-blue"
         ></v-select>
         <v-text-field
@@ -171,7 +219,7 @@
             (user && radios1 == 'radio-1' && radios2 == 'radio-4') ||
             (user && radios1 == 'radio-2')
           "
-          v-model.trim="$v.form2.team.$model"
+          v-model="projectTeamName"
           class="mb-3 d-print-none"
           color="light-blue"
           label="Название команды"
@@ -183,19 +231,18 @@
           color="light-blue"
           @click="onAddYouInProject()"
           block="block"
-          :dark="!$v.form2.$invalid"
-          :disabled="$v.form2.$invalid"
+          :disabled="!projectBtn"
         >
           Добавить участие в проекте
         </v-btn>
-        <div v-if="projects.length != 0">
+        <div v-if="student.studentsForTeam.length != 0">
           <Project
-            v-for="project in projects"
+            v-for="project in student.studentsForTeam"
             :key="project.id"
             v-bind:project="project"
           ></Project>
         </div>
-        <div v-if="projects.length == 0">
+        <div v-if="student.studentsForTeam.length == 0">
           <span>Не найдено</span>
         </div>
       </v-col>
@@ -206,10 +253,12 @@
           v-if="user"
           class="mb-3 d-print-none"
           :items="allEvents"
+          item-text="name"
+          item-value="id"
           label="Мероприятие"
           dense
           required
-          v-model.trim="$v.form.event.$model"
+          v-model="eventEvent"
           color="light-blue"
         ></v-select>
         <v-select
@@ -220,7 +269,7 @@
           dense
           required
           color="light-blue"
-          v-model.trim="$v.form.role.$model"
+          v-model="eventRole"
         ></v-select>
         <v-btn
           v-if="user"
@@ -228,19 +277,18 @@
           color="light-blue"
           @click="onAddYouInEvent()"
           block="block"
-          :dark="!$v.form.$invalid"
-          :disabled="$v.form.$invalid"
+          :disabled="!eventBtn"
         >
           Добавить участие в мероприятии
         </v-btn>
-        <div v-if="events.length != 0">
+        <div v-if="student.studentsInEvents.length != 0">
           <Event
-            v-for="event in events"
+            v-for="event in student.studentsInEvents"
             :key="event.id"
             v-bind:event="event"
           ></Event>
         </div>
-        <div v-if="events.length == 0">
+        <div v-if="student.studentsInEvents.length == 0">
           <span>Не найдено</span>
         </div>
       </v-col>
@@ -249,34 +297,60 @@
 </template>
 
 <script>
-import { required } from "vuelidate/lib/validators";
 import Event from "@/components/Event.vue";
 import Project from "@/components/Project.vue";
+import {
+  PORTFOLIO,
+  SHORTEVENTS,
+  SHORTPROJECTS,
+  SHORTTEAMS,
+  CREATEPROJECT,
+  ADDTOTEAM,
+  CREATETEAMWITHPERSONS,
+  CREATESTUDENTINEVENT
+} from "@/graphql/queries.js";
 export default {
   name: "Portfolio",
   components: {
     Event,
     Project
   },
-  validations: {
-    form: {
-      role: {
-        required
-      },
-      event: {
-        required
+  apollo: {
+    student: {
+      query: PORTFOLIO,
+      variables() {
+        return {
+          studentId: this.$route.params.id
+        };
       }
     },
-    form2: {
-      project: {
-        required
-      },
-      team: {
-        required
-      }
+    allEvents: {
+      query: SHORTEVENTS
+    },
+    allProjects: {
+      query: SHORTPROJECTS
+    },
+    allTeams: {
+      query: SHORTTEAMS
     }
   },
   computed: {
+    eventBtn() {
+      if (this.eventEvent != "" && this.eventRole != "") return true;
+      else return false;
+    },
+    projectBtn() {
+      if (
+        (this.projectName != "" &&
+          this.projectDescription != "" &&
+          this.projectLinks != "" &&
+          this.projectTeamName != "") ||
+        (this.projectProject != "" && this.projectTeam != "") ||
+        (this.projectProject != "" && this.projectTeamName != "")
+      )
+        return true;
+      else return false;
+    },
     computedDateFormatted() {
       return this.formatDate(this.date);
     },
@@ -286,198 +360,33 @@ export default {
   },
   data() {
     return {
-      form: {
-        role: "",
-        event: ""
-      },
-      form2: {
-        project: "",
-        team: ""
-      },
+      projectName: "",
+      projectDescription: "",
+      projectLinks: "",
+
+      projectProject: "",
+
+      projectTeam: "",
+
+      projectTeamName: "",
+
+      eventEvent: "",
+      eventRole: "",
+
       date: new Date().toISOString().substr(0, 10),
       date2: new Date().toISOString().substr(0, 10),
+
       menu1: false,
       menu2: false,
+
       radios1: "radio-1",
       radios2: "radio-3",
-      formDescription: "",
-      formLinks: "",
-      formDateStart: "",
-      formDateEnd: "",
+
       user: false,
       operator: false,
       admin: false,
-      roles: ["Участник", "Волонтер", "Призер", "Победитель"],
-      allEvents: [
-        "Хакатон 2021",
-        "Международный форум молодых ученых «РОЛЬ МОЛОДЫХ УЧЕНЫХ В РАЗВИТИИ НАУКИ, ТЕХНИКИ И ИННОВАЦИЙ» посвященный дню независимости Республики Казахстан",
-        "III Международный научный Форум профессорско-преподавательского состава и молодых учёных «ЦИФРОВЫЕ ТЕХНОЛОГИИ: НАУКА, ОБРАЗОВАНИЕ, ИННОВАЦИИ»"
-      ],
-      allProjects: ["Проект 1", "Проект 2", "Проект 3"],
-      allTeams: ["Команда 1", "Команда 2", "Команда 3"],
 
-      student: [
-        {
-          id: 1,
-          fullname: "Беляева Дарья Владиславовна",
-          birthdate: `${new Date("2000-11-24").getDate()}.${
-            new Date("2000-11-24").getMonth() + 1
-          }.${new Date("2000-11-24").getFullYear()}
-         `,
-          group: 1,
-          email: "d.belyaeva1@gmail.com",
-          budgetary: true
-        },
-        {
-          id: 2,
-          fullname: "Глазков Никита Олегович",
-          birthdate: `${new Date("2000-10-31").getDate()}.${
-            new Date("2000-10-31").getMonth() + 1
-          }.${new Date("2000-10-31").getFullYear()}
-         `,
-          group: 1,
-          email: "zitrnik@gmail.com",
-          budgetary: true
-        },
-        {
-          id: 3,
-          fullname: "Колезнева Надежда Валентиновна",
-          birthdate: `${new Date("2000-09-20").getDate()}.${
-            new Date("2000-09-20").getMonth() + 1
-          }.${new Date("2000-09-20").getFullYear()}
-         `,
-          group: 2,
-          email: "nkolezneva@gmail.com",
-          budgetary: false
-        }
-      ].find(el => {
-        return el.id == this.$route.params.id;
-      }),
-      events: [
-        {
-          id: 1,
-          name: "Международный форум молодых ученых «РОЛЬ МОЛОДЫХ УЧЕНЫХ В РАЗВИТИИ НАУКИ, ТЕХНИКИ И ИННОВАЦИЙ» посвященный дню независимости Республики Казахстан",
-          location: "Online. Платформа Zoom",
-          description:
-            "7-8 декабря 2020 года в рамках Международного форума молодых ученых «Роль молодых ученых в развитии науки, техники и инноваций» посвященного дню независимости Республики Казахстан проводился международный конкурс научно практических и научно исследовательских проектов.",
-          date: `${new Date("2020-12-07").getDate()}.${
-            new Date("2020-12-07").getMonth() + 1
-          }.${new Date("2020-12-07").getFullYear()}
-         `,
-          role: "Победитель",
-          student: 1
-        },
-        {
-          id: 2,
-          name: "III Международный научный Форум профессорско-преподавательского состава и молодых учёных «ЦИФРОВЫЕ ТЕХНОЛОГИИ: НАУКА, ОБРАЗОВАНИЕ, ИННОВАЦИИ»",
-          location: "Online. Платформа Zoom",
-          description:
-            "20 ноября завершился III Международный научный Форум профессорско-преподавательского состава и молодых учёных «ЦИФРОВЫЕ ТЕХНОЛОГИИ: НАУКА, ОБРАЗОВАНИЕ, ИННОВАЦИИ», включивший в себя 12 конференций и научно-методических семинаров, круглых столов и экспертных сессий",
-          date: `${new Date("2020-11-20").getDate()}.${
-            new Date("2020-11-20").getMonth() + 1
-          }.${new Date("2020-11-20").getFullYear()}
-         `,
-          role: "Призер",
-          student: 1
-        },
-        {
-          id: 3,
-          name: "Международный форум молодых ученых «РОЛЬ МОЛОДЫХ УЧЕНЫХ В РАЗВИТИИ НАУКИ, ТЕХНИКИ И ИННОВАЦИЙ» посвященный дню независимости Республики Казахстан",
-          location: "Online. Платформа Zoom",
-          description:
-            "7-8 декабря 2020 года в рамках Международного форума молодых ученых «Роль молодых ученых в развитии науки, техники и инноваций» посвященного дню независимости Республики Казахстан проводился международный конкурс научно практических и научно исследовательских проектов.",
-          date: `${new Date("2020-12-07").getDate()}.${
-            new Date("2020-12-07").getMonth() + 1
-          }.${new Date("2020-12-07").getFullYear()}
-         `,
-          role: "Участник",
-          student: 2
-        },
-        {
-          id: 4,
-          name: "III Международный научный Форум профессорско-преподавательского состава и молодых учёных «ЦИФРОВЫЕ ТЕХНОЛОГИИ: НАУКА, ОБРАЗОВАНИЕ, ИННОВАЦИИ»",
-          location: "Online. Платформа Zoom",
-          description:
-            "20 ноября завершился III Международный научный Форум профессорско-преподавательского состава и молодых учёных «ЦИФРОВЫЕ ТЕХНОЛОГИИ: НАУКА, ОБРАЗОВАНИЕ, ИННОВАЦИИ», включивший в себя 12 конференций и научно-методических семинаров, круглых столов и экспертных сессий",
-          date: `${new Date("2020-11-20").getDate()}.${
-            new Date("2020-11-20").getMonth() + 1
-          }.${new Date("2020-11-20").getFullYear()}
-         `,
-          role: "Победитель",
-          student: 2
-        }
-      ].filter(el => {
-        return el.student == this.$route.params.id;
-      }),
-      projects: [
-        {
-          id: 1,
-          name: "Поливеб",
-          description: "Студенческая веб-студия",
-          dateStart: `${new Date("2019-02-18").getDate()}.${
-            new Date("2019-02-18").getMonth() + 1
-          }.${new Date("2019-02-18").getFullYear()}
-         `,
-          dateEnd: `${new Date("2022-06-30").getDate()}.${
-            new Date("2022-06-30").getMonth() + 1
-          }.${new Date("2022-06-30").getFullYear()}
-         `,
-          links: "Сайт: polyweb.agency",
-          team: "Главный сайт",
-          participant: 1
-        },
-        {
-          id: 2,
-          name: "Поливеб",
-          description: "Студенческая веб-студия",
-          dateStart: `${new Date("2019-02-18").getDate()}.${
-            new Date("2019-02-18").getMonth() + 1
-          }.${new Date("2019-02-18").getFullYear()}
-         `,
-          dateEnd: `${new Date("2022-06-30").getDate()}.${
-            new Date("2022-06-30").getMonth() + 1
-          }.${new Date("2022-06-30").getFullYear()}
-         `,
-          links: "Сайт: polyweb.agency",
-          team: "Игра по интернет-маркетингу",
-          participant: 2
-        },
-        {
-          id: 3,
-          name: "Поливеб",
-          description: "Студенческая веб-студия",
-          dateStart: `${new Date("2019-02-18").getDate()}.${
-            new Date("2019-02-18").getMonth() + 1
-          }.${new Date("2019-02-18").getFullYear()}
-         `,
-          dateEnd: `${new Date("2022-06-30").getDate()}.${
-            new Date("2022-06-30").getMonth() + 1
-          }.${new Date("2022-06-30").getFullYear()}
-         `,
-          links: "Сайт: polyweb.agency",
-          team: "Главный сайт",
-          participant: 2
-        },
-        {
-          id: 4,
-          name: "Catcherry",
-          description:
-            "Цель проекта -  разработать систему оценки продуктивности сотрудников и анализа данных о рабочих процессах, а также алгоритмов аналитических предсказаний и рекомендаций  с использованием механик геймификации для повышения производительности труда конкретных работников и команд различного размера в целом.",
-          dateStart: `${new Date("2020-09-01").getDate()}.${
-            new Date("2020-09-01").getMonth() + 1
-          }.${new Date("2020-09-01").getFullYear()}
-         `,
-          dateEnd: `${new Date("2021-01-03").getDate()}.${
-            new Date("2021-01-03").getMonth() + 1
-          }.${new Date("2021-01-03").getFullYear()}
-         `,
-          links: "Репозиторий: https://github.com/Glazkoff/catcherry;",
-          team: "Команда 1",
-          participant: 1
-        }
-      ].filter(el => {
-        return el.participant == this.$route.params.id;
-      })
+      roles: ["Участник", "Волонтер", "Призер", "Победитель"]
     };
   },
   mounted() {
@@ -497,56 +406,131 @@ export default {
       const [year, month, day] = date.split("-");
       return `${day}.${month}.${year}`;
     },
-    parseDate(date) {
-      if (!date) return null;
-
-      const [month, day, year] = date.split("/");
-      return `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
-    },
 
     clearProject() {
-      this.$v.form2.project.$model = "";
+      this.projectName = "";
+      this.date = new Date().toISOString().substr(0, 10);
+      this.date2 = new Date().toISOString().substr(0, 10);
+      this.projectDescription = "";
+      this.projectLinks = "";
+      this.projectProject = "";
     },
     clearTeam() {
-      this.$v.form2.team.$model = "";
+      this.projectTeam = "";
+      this.projectTeamName = "";
     },
     onAddYouInEvent() {
-      let obj = {
-        id: 5,
-        name: this.$v.form.event.$model,
-        location: "",
-        description: "",
-        date: `${new Date("2020-11-20").getDate()}.${
-          new Date("2020-11-20").getMonth() + 1
-        }.${new Date("2020-11-20").getFullYear()}
-         `,
-        role: this.$v.form.role.$model,
-        student: this.$route.params.id
-      };
-
-      this.events.push(obj);
-      this.$v.form.event.$model = "";
-      this.$v.form.role.$model = "";
+      this.$apollo
+        .mutate({
+          mutation: CREATESTUDENTINEVENT,
+          variables: {
+            student: this.$route.params.id,
+            event: this.eventEvent,
+            role: this.eventRole
+          }
+        })
+        .then(() => {
+          this.$apollo.queries.student.refresh();
+          this.$apollo.queries.student.refetch();
+          this.eventRole = "";
+          this.eventEvent = "";
+        })
+        .catch(error => {
+          console.error(error);
+        });
     },
-    onAddYouInProject() {
-      let obj = {
-        id: 5,
-        name: this.$v.form2.project.$model,
-        description: this.formDescription,
-        dateStart: this.computedDateFormatted,
-        dateEnd: this.computedDateFormatted2,
-        links: this.formLinks,
-        team: this.$v.form2.team.$model,
-        participant: this.$route.params.id
-      };
+    findParticipantByTeamID(id) {
+      let obj = this.allTeams.find(el => el.id === id);
+      let arr = [];
+      obj.participants.forEach(element => {
+        if (element.id != undefined) arr.push(element.id);
+      });
+      return arr;
+    },
 
-      this.projects.push(obj);
-      this.$v.form2.project.$model = "";
-      this.formDescription = "";
-      this.formLinks = "";
-      this.$v.form2.team.$model = "";
-      this.radios1 = "radio-1";
-      this.radios2 = "radio-3";
+    onAddYouInProject() {
+      if (
+        this.projectName != "" &&
+        this.projectDescription != "" &&
+        this.projectLinks != ""
+      ) {
+        this.$apollo
+          .mutate({
+            mutation: CREATEPROJECT,
+            variables: {
+              name: this.projectName,
+              dateStart: this.date,
+              description: this.projectDescription,
+              links: this.projectLinks,
+              dateEnd: this.date2
+            }
+          })
+          .then(res => {
+            console.log(res);
+            this.$apollo
+              .mutate({
+                mutation: CREATETEAMWITHPERSONS,
+                variables: {
+                  name: this.projectTeamName,
+                  project: res.data.createProject.project.id,
+                  participants: [this.$route.params.id]
+                }
+              })
+              .then(() => {
+                this.$apollo.queries.student.refresh();
+                this.$apollo.queries.student.refetch();
+                this.clearProject();
+                this.clearTeam();
+              })
+              .catch(error => {
+                console.error(error);
+              });
+          })
+          .catch(error => {
+            console.error(error);
+          });
+      } else {
+        if (this.projectTeam != "") {
+          let arr = this.findParticipantByTeamID(this.projectTeam);
+          arr.push(this.$route.params.id);
+          this.$apollo
+            .mutate({
+              mutation: ADDTOTEAM,
+              variables: {
+                teamId: this.projectTeam,
+                participants: arr
+              }
+            })
+            .then(() => {
+              this.$apollo.queries.student.refresh();
+              this.$apollo.queries.student.refetch();
+              this.clearProject();
+              this.clearTeam();
+            })
+            .catch(error => {
+              console.error(error);
+            });
+        } else {
+          this.$apollo
+            .mutate({
+              mutation: CREATETEAMWITHPERSONS,
+              variables: {
+                name: this.projectTeamName,
+                project: this.projectProject,
+                participants: [this.$route.params.id]
+              }
+            })
+            .then(() => {
+              this.$apollo.queries.student.refresh();
+              this.$apollo.queries.student.refetch();
+              this.clearProject();
+              this.clearTeam();
+            })
+            .catch(error => {
+              console.error(error);
+            });
+        }
+      }
     }
   }
 };
