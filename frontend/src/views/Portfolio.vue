@@ -69,7 +69,7 @@
         <h3 class="mb-3">Участие в проектах</h3>
         <v-radio-group
           class="d-print-none"
-          v-if="user"
+          v-if="user && checkId()"
           v-model="radios1"
           mandatory
         >
@@ -88,7 +88,7 @@
           ></v-radio>
         </v-radio-group>
         <v-text-field
-          v-if="user && radios1 == 'radio-2'"
+          v-if="user && radios1 == 'radio-2' && checkId()"
           v-model="projectName"
           color="light-blue"
           label="Название проекта"
@@ -96,7 +96,7 @@
           class="d-print-none"
         ></v-text-field>
         <v-textarea
-          v-if="user && radios1 == 'radio-2'"
+          v-if="user && radios1 == 'radio-2' && checkId()"
           name="input-7-1"
           color="light-blue"
           label="Описание проекта"
@@ -104,7 +104,7 @@
           class="mb-3 d-print-none"
         ></v-textarea>
         <v-textarea
-          v-if="user && radios1 == 'radio-2'"
+          v-if="user && radios1 == 'radio-2' && checkId()"
           name="input-7-1"
           color="light-blue"
           label="Ссылки проекта"
@@ -114,7 +114,7 @@
 
         <v-menu
           class="d-print-none"
-          v-if="user && radios1 == 'radio-2'"
+          v-if="user && radios1 == 'radio-2' && checkId()"
           v-model="menu1"
           :close-on-content-click="true"
           transition="scale-transition"
@@ -139,7 +139,7 @@
         </v-menu>
 
         <v-menu
-          v-if="user && radios1 == 'radio-2'"
+          v-if="user && radios1 == 'radio-2' && checkId()"
           v-model="menu2"
           :close-on-content-click="true"
           transition="scale-transition"
@@ -165,7 +165,7 @@
         </v-menu>
 
         <v-select
-          v-if="user && radios1 == 'radio-1'"
+          v-if="user && radios1 == 'radio-1' && checkId()"
           class="mb-3 d-print-none"
           :items="allProjects"
           item-text="name"
@@ -177,7 +177,7 @@
           color="light-blue"
         ></v-select>
         <v-radio-group
-          v-if="user && radios1 == 'radio-1'"
+          v-if="user && radios1 == 'radio-1' && checkId()"
           v-model="radios2"
           mandatory
           class="d-print-none"
@@ -197,7 +197,9 @@
           ></v-radio>
         </v-radio-group>
         <v-select
-          v-if="user && radios1 == 'radio-1' && radios2 == 'radio-3'"
+          v-if="
+            user && radios1 == 'radio-1' && radios2 == 'radio-3' && checkId()
+          "
           :items="
             allTeams.filter(
               el =>
@@ -216,8 +218,11 @@
         ></v-select>
         <v-text-field
           v-if="
-            (user && radios1 == 'radio-1' && radios2 == 'radio-4') ||
-            (user && radios1 == 'radio-2')
+            (user &&
+              radios1 == 'radio-1' &&
+              radios2 == 'radio-4' &&
+              checkId()) ||
+            (user && radios1 == 'radio-2' && checkId())
           "
           v-model="projectTeamName"
           class="mb-3 d-print-none"
@@ -226,7 +231,7 @@
           required
         ></v-text-field>
         <v-btn
-          v-if="user"
+          v-if="user && checkId()"
           class="mb-5 white--text d-print-none"
           color="light-blue"
           @click="onAddYouInProject()"
@@ -250,7 +255,7 @@
       <v-col>
         <h3 class="mb-6">Участие в мероприятиях</h3>
         <v-select
-          v-if="user"
+          v-if="user && checkId()"
           class="mb-3 d-print-none"
           :items="allEvents"
           item-text="name"
@@ -262,7 +267,7 @@
           color="light-blue"
         ></v-select>
         <v-select
-          v-if="user"
+          v-if="user && checkId()"
           class="mb-3 d-print-none"
           :items="roles"
           label="Ваша роль"
@@ -272,7 +277,7 @@
           v-model="eventRole"
         ></v-select>
         <v-btn
-          v-if="user"
+          v-if="user && checkId()"
           class="mb-5 white--text d-print-none"
           color="light-blue"
           @click="onAddYouInEvent()"
@@ -386,13 +391,13 @@ export default {
       return this.formatDate(this.date2);
     },
     user() {
-      return localStorage.getItem("role") == "user";
+      return this.$store.getters.isUser;
     },
     operator() {
-      return localStorage.getItem("role") == "operator";
+      return this.$store.getters.isOperator;
     },
     admin() {
-      return localStorage.getItem("role") == "admin";
+      return this.$store.getters.isAdmin;
     },
     userObj() {
       let obj = {
@@ -406,6 +411,9 @@ export default {
     }
   },
   methods: {
+    checkId() {
+      return this.userObj.id == this.$route.params.id;
+    },
     formatDate(date) {
       if (!date) return null;
 

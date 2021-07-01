@@ -53,7 +53,7 @@
         >
           <v-card-title>{{ student.fullname }}</v-card-title>
           <v-card-subtitle class="pb-0">{{
-            student.birthdate
+            formatDate(student.birthdate)
           }}</v-card-subtitle>
           <span class="ma-4 light-blue--text text--darken-3"
             >E-mail: {{ student.email }}</span
@@ -94,6 +94,12 @@ export default {
   methods: {
     onLink(id) {
       this.$router.push({ name: "Portfolio", params: { id: id } });
+    },
+    formatDate(date) {
+      if (!date) return null;
+
+      const [year, month, day] = date.split("-");
+      return `${day}.${month}.${year}`;
     }
   },
   computed: {
