@@ -1,6 +1,6 @@
 from graphene_django import DjangoObjectType
 from .models import Universities, Faculties, Specializations, Groups, Students, Employee
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Group
  
 class UniversityType(DjangoObjectType):
     class Meta:
@@ -17,7 +17,7 @@ class SpecializationType(DjangoObjectType):
         model = Specializations
         fields = "__all__"
 
-class GroupType(DjangoObjectType):
+class GroupsType(DjangoObjectType):
     class Meta:
         model = Groups
         fields = "__all__"
@@ -35,4 +35,9 @@ class EmployeeType(DjangoObjectType):
 class UserType(DjangoObjectType):
     class Meta:
         model = User
+        fields = "__all__"
+
+class GroupType(DjangoObjectType):
+    class Meta:
+        model = Group
         fields = "__all__"

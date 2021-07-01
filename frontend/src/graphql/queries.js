@@ -282,6 +282,7 @@ export const PORTFOLIO = gql`
         id
         name
         project {
+          id
           name
           description
           links
@@ -293,6 +294,7 @@ export const PORTFOLIO = gql`
         id
         role
         event {
+          id
           name
           date
         }
@@ -667,6 +669,30 @@ export const UPDATEGROUP = gql`
       studyDegree: $studyDegree
     ) {
       ok
+    }
+  }
+`;
+
+// Авторизация
+export const AUTH = gql`
+  mutation ($login: String!, $password: String!) {
+    auth(login: $login, password: $password) {
+      isOk
+      user {
+        id
+        firstName
+        lastName
+      }
+      employee {
+        id
+        student {
+          id
+        }
+      }
+      userGroup {
+        id
+        name
+      }
     }
   }
 `;

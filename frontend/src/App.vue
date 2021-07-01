@@ -15,7 +15,7 @@
 
         <v-spacer></v-spacer>
         <div v-if="user || operator || admin" class="flexxx">
-          <span>Беляева Дарья</span>
+          <span>{{ userObj.name }}</span>
           <span v-if="operator"> Оператор</span>
           <span v-if="admin"> Администратор</span>
         </div>
@@ -38,7 +38,7 @@
           <v-list-item v-if="admin" @click="onLinkDashboard()">
             <v-list-item-title>Дашборд</v-list-item-title>
           </v-list-item>
-          <v-list-item v-if="user" @click="onLinkPortfolio(1)">
+          <v-list-item v-if="user" @click="onLinkPortfolio(userObj.id)">
             <v-list-item-title>Профиль</v-list-item-title>
           </v-list-item>
           <v-list-item v-if="admin" @click="onLinkAllUniversities()">
@@ -99,22 +99,31 @@ export default {
   data() {
     return {
       drawer: false,
-      group: null,
-      user: false,
-      operator: false,
-      admin: false
+      group: null
     };
   },
-  mounted() {
-    if (localStorage.getItem("user")) this.user = true;
-    else this.user = false;
-
-    if (localStorage.getItem("operator")) this.operator = true;
-    else this.operator = false;
-
-    if (localStorage.getItem("admin")) this.admin = true;
-    else this.admin = false;
+  computed: {
+    user() {
+      return this.$store.getters.isUser;
+    },
+    operator() {
+      return this.$store.getters.isOperator;
+    },
+    admin() {
+      return this.$store.getters.isAdmin;
+    },
+    userObj() {
+      let obj = {
+        name: localStorage.getItem("name"),
+        id: undefined
+      };
+      if (this.user) {
+        obj.id = localStorage.getItem("id");
+      }
+      return obj;
+    }
   },
+
   methods: {
     onLinkDashboard() {
       this.$router.push({ name: "Dashboard" });
@@ -155,15 +164,11 @@ export default {
       this.$router.push({ name: "Portfolio", params: { id: id } });
     },
     logOut() {
-      localStorage.removeItem("user");
-      localStorage.removeItem("operator");
-      localStorage.removeItem("admin");
-      this.user = false;
-      this.operator = false;
-      this.admin = false;
-      if (this.$router.currentRoute.name != "Auth") {
-        this.$router.push({ name: "Auth" });
-      }
+      localStorage.removeItem("role");
+      localStorage.removeItem("id");
+      localStorage.removeItem("name");
+      this.$store.commit("CLEAR_ROLE");
+      this.$router.push({ name: "Auth" });
     }
   }
 };

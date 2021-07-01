@@ -1,6 +1,6 @@
-from .mutation import CreateFacultyMutation, CreateGroupMutation, CreateSpecializationMutation, CreateUniversityMutation, DeleteFacultyMutation, DeleteGroupMutation, DeleteSpecializationMutation, DeleteUniversityMutation, UpdateFacultyMutation, UpdateGroupMutation, UpdateSpecializationMutation, UpdateUniversityMutation
+from .mutation import AuthMutation, CreateFacultyMutation, CreateGroupMutation, CreateSpecializationMutation, CreateUniversityMutation, DeleteFacultyMutation, DeleteGroupMutation, DeleteSpecializationMutation, DeleteUniversityMutation, UpdateFacultyMutation, UpdateGroupMutation, UpdateSpecializationMutation, UpdateUniversityMutation
 import graphene
-from .types import UniversityType, FacultyType, SpecializationType, GroupType, StudentType, EmployeeType, UserType
+from .types import UniversityType, FacultyType, SpecializationType, GroupsType, StudentType, EmployeeType, UserType
 from .models import Universities, Faculties, Specializations, Groups, Students, Employee 
 from django.contrib.auth.models import User
 
@@ -14,8 +14,8 @@ class Query(graphene.ObjectType):
     all_specializations = graphene.List(SpecializationType)
     specialization = graphene.Field(SpecializationType, specialization_id=graphene.ID(required=True))
     
-    all_groups = graphene.List(GroupType)
-    group = graphene.Field(GroupType, group_id=graphene.ID(required=True))
+    all_groups = graphene.List(GroupsType)
+    group = graphene.Field(GroupsType, group_id=graphene.ID(required=True))
 
     all_students = graphene.List(StudentType)
     student = graphene.Field(StudentType, student_id=graphene.ID(required=True))
@@ -25,7 +25,6 @@ class Query(graphene.ObjectType):
     
     all_users = graphene.List(UserType)
     user = graphene.Field(UserType, user_id=graphene.ID(required=True))
-    auth_user = graphene.Field(UserType, login=graphene.String(required=True), password=graphene.String(required=True))
     
     def resolve_all_universities(root, info):
         return Universities.objects.all()
@@ -69,9 +68,6 @@ class Query(graphene.ObjectType):
     def resolve_user(root, info, user_id):
         return User.objects.get(pk=user_id)
 
-    def resolve_auth_user(root, info, login, password):
-        return User.objects.get(username=login, password=password)
-
 class Mutation(graphene.ObjectType):
     create_university = CreateUniversityMutation.Field()
     create_faculty = CreateFacultyMutation.Field()
@@ -85,5 +81,6 @@ class Mutation(graphene.ObjectType):
     update_faculty = UpdateFacultyMutation.Field()
     update_specialization = UpdateSpecializationMutation.Field()
     update_group = UpdateGroupMutation.Field()
+    auth = AuthMutation.Field()
     
 schema = graphene.Schema(query=Query, mutation=Mutation)    

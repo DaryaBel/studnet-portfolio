@@ -42,8 +42,10 @@
 </template>
 
 <script>
+import { AUTH } from "@/graphql/queries.js";
 export default {
   name: "Auth",
+
   data() {
     return {
       passShow: false,
@@ -62,24 +64,40 @@ export default {
 
   methods: {
     onLogin() {
-      if (this.login == "operator") {
-        localStorage.setItem("operator", true);
-        this.password = "";
-        this.login = "";
-        this.$router.push({ name: "Universities" });
-      } else {
-        if (this.login == "admin") {
-          localStorage.setItem("admin", true);
-          this.password = "";
+      this.$apollo
+        .mutate({
+          mutation: AUTH,
+          variables: {
+            login: this.login,
+            password: this.password
+          }
+        })
+        .then(res => {
           this.login = "";
-          this.$router.push({ name: "Universities" });
-        } else {
-          localStorage.setItem("user", true);
           this.password = "";
-          this.login = "";
-          this.$router.push({ name: "Universities" });
-        }
-      }
+          if (res.data.auth.isOk) {
+            if (res.data.auth.userGroup.name == "Операторы") {
+              localStorage.setItem("role", "operator");
+              localStorage.setItem("name", res.data.auth.user.firstName);
+              this.$store.commit("SET_ROLE", "operator");
+            }
+            if (res.data.auth.userGroup.name == "Администраторы") {
+              localStorage.setItem("role", "admin");
+              localStorage.setItem("name", res.data.auth.user.firstName);
+              this.$store.commit("SET_ROLE", "admin");
+            }
+            if (res.data.auth.userGroup.name == "Пользователи") {
+              localStorage.setItem("name", res.data.auth.user.firstName);
+              localStorage.setItem("id", res.data.auth.employee.student.id);
+              localStorage.setItem("role", "user");
+              this.$store.commit("SET_ROLE", "user");
+            }
+            this.$router.push({ name: "Universities" });
+          }
+        })
+        .catch(error => {
+          console.error(error);
+        });
     }
   }
 };

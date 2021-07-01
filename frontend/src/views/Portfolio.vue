@@ -334,30 +334,7 @@ export default {
       query: SHORTTEAMS
     }
   },
-  computed: {
-    eventBtn() {
-      if (this.eventEvent != "" && this.eventRole != "") return true;
-      else return false;
-    },
-    projectBtn() {
-      if (
-        (this.projectName != "" &&
-          this.projectDescription != "" &&
-          this.projectLinks != "" &&
-          this.projectTeamName != "") ||
-        (this.projectProject != "" && this.projectTeam != "") ||
-        (this.projectProject != "" && this.projectTeamName != "")
-      )
-        return true;
-      else return false;
-    },
-    computedDateFormatted() {
-      return this.formatDate(this.date);
-    },
-    computedDateFormatted2() {
-      return this.formatDate(this.date2);
-    }
-  },
+
   data() {
     return {
       projectName: "",
@@ -382,22 +359,51 @@ export default {
       radios1: "radio-1",
       radios2: "radio-3",
 
-      user: false,
-      operator: false,
-      admin: false,
-
       roles: ["Участник", "Волонтер", "Призер", "Победитель"]
     };
   },
-  mounted() {
-    if (localStorage.getItem("user")) this.user = true;
-    else this.user = false;
-
-    if (localStorage.getItem("operator")) this.operator = true;
-    else this.operator = false;
-
-    if (localStorage.getItem("admin")) this.admin = true;
-    else this.admin = false;
+  computed: {
+    eventBtn() {
+      if (this.eventEvent != "" && this.eventRole != "") return true;
+      else return false;
+    },
+    projectBtn() {
+      if (
+        (this.projectName != "" &&
+          this.projectDescription != "" &&
+          this.projectLinks != "" &&
+          this.projectTeamName != "") ||
+        (this.projectProject != "" && this.projectTeam != "") ||
+        (this.projectProject != "" && this.projectTeamName != "")
+      )
+        return true;
+      else return false;
+    },
+    computedDateFormatted() {
+      return this.formatDate(this.date);
+    },
+    computedDateFormatted2() {
+      return this.formatDate(this.date2);
+    },
+    user() {
+      return localStorage.getItem("role") == "user";
+    },
+    operator() {
+      return localStorage.getItem("role") == "operator";
+    },
+    admin() {
+      return localStorage.getItem("role") == "admin";
+    },
+    userObj() {
+      let obj = {
+        name: localStorage.getItem("name"),
+        id: undefined
+      };
+      if (this.user) {
+        obj.id = localStorage.getItem("id");
+      }
+      return obj;
+    }
   },
   methods: {
     formatDate(date) {

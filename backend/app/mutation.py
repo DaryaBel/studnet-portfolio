@@ -1,6 +1,8 @@
 import graphene
-from .types import UniversityType, FacultyType, SpecializationType, GroupType, StudentType, EmployeeType, UserType
+from .types import UniversityType, FacultyType, SpecializationType, GroupsType, StudentType, EmployeeType, UserType, GroupType
 from .models import Universities, Faculties, Specializations, Groups, Students, Employee 
+from django.contrib.auth.models import User, Group
+from django.contrib.auth.hashers import check_password
 
 class CreateUniversityMutation(graphene.Mutation):
     class Arguments:
@@ -206,3 +208,27 @@ class UpdateGroupMutation(graphene.Mutation):
                 group.specialization = specializationObj
         group.save()
         return cls(ok=True)
+
+class AuthMutation(graphene.Mutation):
+    class Arguments:
+        login = graphene.String(required=True)
+        password = graphene.String(required=True)
+
+    user = graphene.Field(UserType)
+    user_group = graphene.Field(GroupType)
+    employee = graphene.Field(EmployeeType)
+    is_ok = graphene.Boolean()
+
+    @classmethod
+    def mutate(cls, root, info,  login, password):
+        try:
+            user = User.objects.get(username=login)
+            is_ok = check_password(password, user.password)
+            if not is_ok:
+                return AuthMutation(user=None, user_group=None, employee=None, is_ok=is_ok)
+            user_group = Group.objects.get(user=user)
+            employee = Employee.objects.get(user=user)
+            return AuthMutation(user=user,user_group=user_group, employee=employee, is_ok=is_ok)
+        except User.DoesNotExist:
+            user = None
+            return AuthMutation(user=None, user_group=None, employee=None, is_ok=False)
