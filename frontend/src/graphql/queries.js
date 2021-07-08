@@ -269,6 +269,20 @@ export const STUDENTSOFGROUP = gql`
   }
 `;
 
+// Статистика
+export const STATISTICS = gql`
+  {
+    statistics {
+      students {
+        id
+        fullname
+        eventsCount
+        teamsCount
+      }
+    }
+  }
+`;
+
 // Студент и его портфолио
 export const PORTFOLIO = gql`
   query ($studentId: ID!) {

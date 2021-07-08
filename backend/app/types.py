@@ -1,7 +1,8 @@
 from graphene_django import DjangoObjectType
 from .models import Universities, Faculties, Specializations, Groups, Students, Employee
 from django.contrib.auth.models import User, Group
- 
+import graphene
+
 class UniversityType(DjangoObjectType):
     class Meta:
         model = Universities
@@ -23,9 +24,19 @@ class GroupsType(DjangoObjectType):
         fields = "__all__"
 
 class StudentType(DjangoObjectType):
+    events_count = graphene.Int()
+    teams_count = graphene.Int()
+
     class Meta:
         model = Students
         fields = "__all__"
+
+    def resolve_events_count(self, info):
+            return self.studentsInEvents.count()
+
+    def resolve_teams_count(self, info):
+            return self.studentsForTeam.count()
+
 
 class EmployeeType(DjangoObjectType):
     class Meta:

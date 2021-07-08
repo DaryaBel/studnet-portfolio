@@ -1,9 +1,17 @@
 from .mutation import AuthMutation, CreateFacultyMutation, CreateGroupMutation, CreateSpecializationMutation, CreateUniversityMutation, DeleteFacultyMutation, DeleteGroupMutation, DeleteSpecializationMutation, DeleteUniversityMutation, UpdateFacultyMutation, UpdateGroupMutation, UpdateSpecializationMutation, UpdateUniversityMutation
+from collections import namedtuple
 import graphene
+from django.db.models import Sum, Count
 from .types import UniversityType, FacultyType, SpecializationType, GroupsType, StudentType, EmployeeType, UserType
 from .models import Universities, Faculties, Specializations, Groups, Students, Employee 
 from django.contrib.auth.models import User
 
+StudentStatisticsObject = namedtuple(
+    "StudentStatisticsType", ["students"])
+
+class StudentStatisticsType(graphene.ObjectType):
+    students = graphene.List(StudentType)
+    
 class Query(graphene.ObjectType):
     all_universities = graphene.List(UniversityType)
     university = graphene.Field(UniversityType, university_id=graphene.ID(required=True))
@@ -26,6 +34,8 @@ class Query(graphene.ObjectType):
     all_users = graphene.List(UserType)
     user = graphene.Field(UserType, user_id=graphene.ID(required=True))
     
+    statistics = graphene.Field(StudentStatisticsType)
+
     def resolve_all_universities(root, info):
         return Universities.objects.all()
 
@@ -67,6 +77,10 @@ class Query(graphene.ObjectType):
 
     def resolve_user(root, info, user_id):
         return User.objects.get(pk=user_id)
+
+    def resolve_statistics(self, info):
+        students = Students.objects.all()
+        return StudentStatisticsObject(students=students)
 
 class Mutation(graphene.ObjectType):
     create_university = CreateUniversityMutation.Field()
