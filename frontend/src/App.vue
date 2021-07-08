@@ -14,7 +14,7 @@
         </h2>
 
         <v-spacer></v-spacer>
-        <div v-if="user || operator || admin" class="flexxx">
+        <div v-if="user || operator || admin" class="custom-flex">
           <span>{{ userObj.name }}</span>
           <span v-if="operator"> Оператор</span>
           <span v-if="admin"> Администратор</span>
@@ -175,7 +175,7 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-.flexxx {
+.custom-flex {
   display: flex;
   flex-direction: column;
   & * {
@@ -187,7 +187,7 @@ export default {
   cursor: pointer !important;
 }
 
-@media (max-width: 365px) {
+@media (max-width: 438px) {
   header.my-header {
     height: 136px !important;
     & button.v-btn {
